@@ -117,21 +117,21 @@ add_callback!(simulation, progress_message, IterationInterval(100))
 
 # Output
 
-simulation.output_writers[:temperature] =
-    JLD2OutputWriter(model, model.tracers,
-                     filename = filename * ".jld2",
-                     schedule = TimeInterval(1minute),
-                     overwrite_existing = true
-)
+const data_interval = 2minutes
 
 #
 u,v,w = model.velocities
-s = sqrt(u^2 + w^2)
 
-simulation.output_writers[:fields] = 
-    JLD2OutputWriter(model, (; s),
-                     schedule = TimeInterval(1minute),
-                     filename = filename_v * ".jld2",
+outputs = (s = sqrt(model.velocities.u^2 + model.velocities.w^2),
+           ω = Field(∂z(model.velocities.u) - ∂x(model.velocities.w)),
+           T = model.tracers.T,
+           avg_T = Average(model.tracers.T, dims=(1, 2))
+)
+
+simulation.output_writers[:simple_outputs] =
+    JLD2OutputWriter(model, outputs,
+                     schedule = TimeInterval(data_interval),
+                     filename = filename * ".jld2",
                      overwrite_existing = true
 )
 
@@ -141,35 +141,42 @@ run!(simulation)
 @info"Plotting animation"
 
 T_timeseries = FieldTimeSeries(filename * ".jld2", "T")
-s_timeseries = FieldTimeSeries(filename_v * ".jld2", "s")
+s_timeseries = FieldTimeSeries(filename * ".jld2", "s")
+ω_timeseries = FieldTimeSeries(filename * ".jld2", "ω")
 times = T_timeseries.times
 
 xT, zT = nodes(T_timeseries)
 xs, zx = nodes(s_timeseries)
+xω, zω = nodes(ω_timeseries)
 
 set_theme!(Theme(fontsize = 24))
 
-fig = Figure(size = (1200,800))
+fig = Figure(size = (1000,1200))
 
 axis_kwargs = (xlabel = "x (m)", ylabel = "z (m)",
                aspect = DataAspect()
 )
 
-ax_T = Axis(fig[2,1]; title = "Temperature", axis_kwargs...)
-ax_s = Axis(fig[3,1]; title = L"Speed, $\sqrt{u^2+v^2}$", axis_kwargs...)
+ax_T = Axis(fig[2,1]; title = L"Temperature, $T$", axis_kwargs...)
+ax_s = Axis(fig[3,1]; title = L"Speed, $s = \sqrt{u^2+v^2}$", axis_kwargs...)
+ax_ω = Axis(fig[4,1]; title = L"Vorticity, $\omega = \frac{\partial u}{\partial z} - frac{\partial w}{\partial x}$", axis_kwargs...)
 
 n = Observable(1)
 
 T = @lift T_timeseries[$n]
 s = @lift s_timeseries[$n]
+ω = @lift ω_timeseries[$n]
 
 Tlims = (minimum(abs, interior(T_timeseries)), maximum(abs, interior(T_timeseries)))
 slims = (minimum(abs, interior(s_timeseries)), maximum(abs, interior(s_timeseries)))
+ωlims = (minimum(abs, interior(ω_timeseries)), maximum(abs, interior(ω_timeseries)))
 
 hm_T = heatmap!(ax_T, T; colormap = :thermometer, colorrange = Tlims)
 Colorbar(fig[2,2], hm_T)
 hm_s = heatmap!(ax_s, s; colormap = :speed, colorrange = slims)
 Colorbar(fig[3,2], hm_s)
+hm_ω = heatmap!(ax_ω, ω; colormap = :balance, colorrange = ωlims)
+Colorbar(fig[4,2])
 
 title = @lift "t = " * prettytime(times[$n])
 Label(fig[1, 1:2], title, fontsize = 24, tellwidth=true)
@@ -177,6 +184,6 @@ Label(fig[1, 1:2], title, fontsize = 24, tellwidth=true)
 #record movie
 frames = 1:length(times)
 @info "Making an animation..."
-record(fig, filename * ".mp4", frames, framerate=32) do i
+record(fig, filename * ".mp4", frames, framerate=16) do i
     n[] = i
 end
