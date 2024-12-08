@@ -1,13 +1,9 @@
 #!/bin/bash
-# This line is required to inform the Linux
-#command line to parse the script using
-#the bash shell
 
 # Instructing SLURM to locate and assign
 #X number of nodes with Y number of
 #cores in each node.
-# X,Y are integers. Refer to table for
-#various combinations
+# X,Y are integers. Refer to table for various combinations
 #SBATCH -N X
 #SBATCH -c Y
 

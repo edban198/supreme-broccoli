@@ -15,9 +15,8 @@ filename_v = filename * "_veolcity"
 
 @info"Setting up model"
 
-Nx = 256     # number of points in each of horizontal directions
-Nz = 96          # number of points in the vertical direction
-#Nx, Nz = 64,32 #for testing quickley
+Nx = 512     # number of points in each of horizontal directions
+Nz = 256          # number of points in the vertical direction
 
 Lx = 128     # (m) domain horizontal extents
 Lz = 32          # (m) domain depth
@@ -44,7 +43,7 @@ grid = RectilinearGrid(size = (Nx, Nz),
 )
 
 # Buoyancy that depends on temperature:
-buoyancy = SeawaterBuoyancy(constant_salinity = 35)
+buoyancy = SeawaterBuoyancy(constant_salinity = 0)
 
 dTdz = 0.01 # K m⁻¹
 
