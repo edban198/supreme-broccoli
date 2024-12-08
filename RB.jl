@@ -15,14 +15,14 @@ filename_v = filename * "_veolcity"
 
 @info"Setting up model"
 
-Nx = 512     # number of points in each of horizontal directions
-Nz = 256          # number of points in the vertical direction
+const Nx = 512     # number of points in each of horizontal directions
+const Nz = 256          # number of points in the vertical direction
 
-Lx = 128     # (m) domain horizontal extents
-Lz = 32          # (m) domain depth
+const Lx = 128     # (m) domain horizontal extents
+const Lz = 32          # (m) domain depth
 
-refinement = 1.2 # controls spacing near surface (higher means finer spaced)
-stretching = 12  # controls rate of stretching at bottom
+const refinement = 1.2 # controls spacing near surface (higher means finer spaced)
+const stretching = 12  # controls rate of stretching at bottom
 
 # Normalized height ranging from 0 to 1
 h(k) = (k - 1) / Nz
@@ -36,7 +36,7 @@ h(k) = (k - 1) / Nz
 # Generating function
 z_faces(k) = Lz * (ζ₀(k) * Σ(k) - 1)
 
-grid = RectilinearGrid(size = (Nx, Nz),
+grid = RectilinearGrid(GPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = z_faces,
                        topology = (Periodic, Flat, Bounded)
@@ -45,10 +45,8 @@ grid = RectilinearGrid(size = (Nx, Nz),
 # Buoyancy that depends on temperature:
 buoyancy = SeawaterBuoyancy(constant_salinity = 0)
 
-dTdz = 0.01 # K m⁻¹
-
-Δ = 1e-3
-Γ = 1e-6
+const Δ = 1e-3
+const Γ = 1e-6
 #RB1
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(20), bottom = ValueBoundaryCondition(20+Δ))
 #RB2
@@ -56,14 +54,22 @@ T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(20), bottom = Value
 #RB3
 #T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(20), bottom = FluxBoundaryCondition(Γ))
 
-ν = 1e-3
-κ = 1e-6
+const g = buoyancy.gravitational_acceleration
+const α = buoyancy.equation_of_state.thermal_expansion
 
-g = buoyancy.gravitational_acceleration
-α = buoyancy.equation_of_state.thermal_expansion
+#=
+const ν = 1e-3
+const κ = 1e-6
 
-Ra = g * α * Δ * Lz^3 / (ν * κ)
-Pr = ν/κ 
+const Ra = g * α * Δ * Lz^3 / (ν * κ)
+const Pr = ν/κ
+=#
+
+const Ra = 1e12
+const Pr = 1
+
+const ν = sqrt(g * α * Δ * Lz^3 / (Pr * Ra))
+const κ = sqrt(g * α * Δ * Lz^3 * Pr / Ra)
 
 closure_1 = AnisotropicMinimumDissipation()
 closure_2 = (HorizontalScalarDiffusivity(ν=ν,κ=κ),
