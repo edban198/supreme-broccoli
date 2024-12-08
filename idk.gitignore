@@ -1,0 +1,3 @@
+.DS_Store
+*.jl~  # Temporary Julia files
+.vscode/
