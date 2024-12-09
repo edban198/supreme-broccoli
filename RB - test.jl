@@ -7,25 +7,20 @@ using CairoMakie
 using LaTeXStrings
 using Statistics
 using Oceananigans
-using Oceananigans.Fields
 using Oceananigans.Units: seconds, minute, minutes, hour, hours, day, days
-using Oceananigans.Units: kilometers, meters
 
-filename = "convection"
-filename_v = filename * "_veolcity"
-filename_KE = filename * "_KE"
+filename = "RB_gpu_simulation"
 
 @info"Setting up model"
 
-#Nx = 256     # number of points in each of horizontal directions
-#Nz = 96          # number of points in the vertical direction
-Nx, Nz = 64,32 #for testing quickley
+const Nx = 64     # number of points in each of horizontal directions
+const Nz = 32          # number of points in the vertical direction
 
-Lx = 128     # (m) domain horizontal extents
-Lz = 32          # (m) domain depth
+const Lx = 128     # (m) domain horizontal extents
+const Lz = 32          # (m) domain depth
 
-refinement = 1.2 # controls spacing near surface (higher means finer spaced)
-stretching = 12  # controls rate of stretching at bottom
+const refinement = 1.2 # controls spacing near surface (higher means finer spaced)
+const stretching = 12  # controls rate of stretching at bottom
 
 # Normalized height ranging from 0 to 1
 h(k) = (k - 1) / Nz
@@ -39,7 +34,7 @@ h(k) = (k - 1) / Nz
 # Generating function
 z_faces(k) = Lz * (ζ₀(k) * Σ(k) - 1)
 
-grid = RectilinearGrid(size = (Nx, Nz),
+grid = RectilinearGrid(CPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = z_faces,
                        topology = (Periodic, Flat, Bounded)
@@ -48,10 +43,8 @@ grid = RectilinearGrid(size = (Nx, Nz),
 # Buoyancy that depends on temperature:
 buoyancy = SeawaterBuoyancy(constant_salinity = 0)
 
-dTdz = 0.01 # K m⁻¹
-
-Δ = 1e-3
-Γ = 1e-6
+const Δ = 1e-3
+const Γ = 1e-6
 #RB1
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(20), bottom = ValueBoundaryCondition(20+Δ))
 #RB2
@@ -59,41 +52,31 @@ T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(20), bottom = Value
 #RB3
 #T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(20), bottom = FluxBoundaryCondition(Γ))
 
-g = buoyancy.gravitational_acceleration
-α = buoyancy.equation_of_state.thermal_expansion
+const g = buoyancy.gravitational_acceleration
+const α = buoyancy.equation_of_state.thermal_expansion
 
 #=
-ν = 1e-3
-κ = 1e-6
+const ν = 1e-3
+const κ = 1e-6
 
-Ra = g * α * Δ * Lz^3 / (ν * κ)
-Pr = ν/κ
+const Ra = g * α * Δ * Lz^3 / (ν * κ)
+const Pr = ν/κ
 =#
 
-Ra = 1e12
-Pr = 1
+const Ra = 1e12
+const Pr = 1
 
-ν = sqrt(g * α * Δ * Lz^3 / (Pr * Ra))
-κ = sqrt(g * α * Δ * Lz^3 * Pr / Ra)
+const ν = sqrt(g * α * Δ * Lz^3 / (Pr * Ra))
+const κ = sqrt(g * α * Δ * Lz^3 * Pr / Ra)
 
-closure_1 = AnisotropicMinimumDissipation()
-closure_2 = (HorizontalScalarDiffusivity(ν=ν,κ=κ),
-             VerticalScalarDiffusivity(ν=ν,κ=κ)
-)
-closure_3 = ScalarDiffusivity(ν=ν,κ=κ)
+closure = ScalarDiffusivity(ν=ν,κ=κ)
 
 model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:T),
-                            closure = closure_3,
+                            closure = closure,
                             boundary_conditions = (; T=T_bcs)
 )
-
-w_centered = interpolate(model.velocities.w, model.tracers.T)
-mean_flux = mean(w_centered .* model.tracers.T, dims=1)
-#const Nu = mean_flux / (κ * Δ / Lz)
-
-#println("Ra = " * string(Ra) * ", Pr = " * string(Pr) * ", Nu = " * string(mean(Nu)))
 
 # Initial conditions
 
@@ -128,9 +111,6 @@ add_callback!(simulation, progress_message, IterationInterval(100))
 
 # Output
 
-const data_interval = 2minutes
-
-#
 u,v,w = model.velocities
 
 outputs = (s = sqrt(model.velocities.u^2 + model.velocities.w^2),
@@ -138,6 +118,8 @@ outputs = (s = sqrt(model.velocities.u^2 + model.velocities.w^2),
            T = model.tracers.T,
            avg_T = Average(model.tracers.T, dims=(1, 2))
 )
+
+const data_interval = 2minutes
 
 simulation.output_writers[:simple_outputs] =
     JLD2OutputWriter(model, outputs,
@@ -160,7 +142,6 @@ times = T_timeseries.times
 xT, zT = nodes(T_timeseries)
 xs, zx = nodes(s_timeseries)
 xω, zω = nodes(ω_timeseries)
-
 
 set_theme!(Theme(fontsize = 24))
 

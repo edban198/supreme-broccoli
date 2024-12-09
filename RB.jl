@@ -8,7 +8,6 @@ using LaTeXStrings
 using Statistics
 using Oceananigans
 using Oceananigans.Units: seconds, minute, minutes, hour, hours, day, days
-using Oceananigans.Units: kilometers, meters
 
 filename = "RB_gpu_simulation"
 
@@ -112,9 +111,6 @@ add_callback!(simulation, progress_message, IterationInterval(100))
 
 # Output
 
-const data_interval = 2minutes
-
-#
 u,v,w = model.velocities
 
 outputs = (s = sqrt(model.velocities.u^2 + model.velocities.w^2),
@@ -122,6 +118,8 @@ outputs = (s = sqrt(model.velocities.u^2 + model.velocities.w^2),
            T = model.tracers.T,
            avg_T = Average(model.tracers.T, dims=(1, 2))
 )
+
+const data_interval = 2minutes
 
 simulation.output_writers[:simple_outputs] =
     JLD2OutputWriter(model, outputs,
