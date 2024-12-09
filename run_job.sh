@@ -7,7 +7,7 @@
 #SBATCH -N 1
 #SBATCH -c 1
 #SBATCH --gres=gpu
-#SBATCH -p gpu-small
+#SBATCH -p ug-gpu-small
 #SBATCH --qos=short
 
 #SBATCH --job-name=RB_gpu_simulation
