@@ -9,7 +9,9 @@
 #SBATCH --gres=gpu
 #SBATCH -p gpu-small
 #SBATCH --qos=short
+
 #SBATCH --job-name=RB_gpu_simulation
+
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user sfbj55@durham.ac.uk
 
@@ -17,9 +19,8 @@
 source /etc/profile
 
 module load julia/1.9.2
-
-# Run your program (replace this with your program)
+# Run the program
 julia RB.jl
 
-# add log file to log the progress messages
-julia RB.jl > output.log 2>&1
+# delete tempory file
+rm -f RB_gpu_simulation.jld2

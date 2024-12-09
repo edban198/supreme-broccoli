@@ -10,8 +10,7 @@ using Oceananigans
 using Oceananigans.Units: seconds, minute, minutes, hour, hours, day, days
 using Oceananigans.Units: kilometers, meters
 
-filename = "convection"
-filename_v = filename * "_veolcity"
+filename = "RB_gpu_simulation"
 
 @info"Setting up model"
 
