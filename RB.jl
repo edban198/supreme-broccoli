@@ -1,6 +1,6 @@
 @info"Importing librarys"
-#using Pkg
-#pkg"add Oceananigans, CairoMakie"
+using Pkg
+pkg"add Oceananigans, CairoMakie, LaTeXStrings, Statistics, Printf"
 
 using Printf
 using CairoMakie
