@@ -143,6 +143,7 @@ run!(simulation)
 T_timeseries = FieldTimeSeries(filename * ".jld2", "T")
 s_timeseries = FieldTimeSeries(filename * ".jld2", "s")
 ω_timeseries = FieldTimeSeries(filename * ".jld2", "ω")
+avg_T_timeseries = FieldTimeSeries(filename * ".jld2", "avg_T")
 times = T_timeseries.times
 
 xT, zT = nodes(T_timeseries)
@@ -159,17 +160,21 @@ axis_kwargs = (xlabel = "x (m)", ylabel = "z (m)",
 
 ax_T = Axis(fig[2,1]; title = L"Temperature, $T$", axis_kwargs...)
 ax_s = Axis(fig[3,1]; title = L"Speed, $s = \sqrt{u^2+v^2}$", axis_kwargs...)
-ax_ω = Axis(fig[4,1]; title = L"Vorticity, $\omega = \frac{\partial u}{\partial z} - frac{\partial w}{\partial x}$", axis_kwargs...)
+ax_ω = Axis(fig[4,1]; title = L"Vorticity, $\omega = \frac{\partial u}{\partial z} - \frac{\partial w}{\partial x}$", axis_kwargs...)
+ax_avg_T = Axis(fig[5,1]; title = L"Average Temperature over $x$", xlabel = "T", ylabel = "z(m)")
 
 n = Observable(1)
 
 T = @lift T_timeseries[$n]
 s = @lift s_timeseries[$n]
 ω = @lift ω_timeseries[$n]
+avg_T = @lift avg_T_timeseries[$n]
 
 Tlims = (minimum(abs, interior(T_timeseries)), maximum(abs, interior(T_timeseries)))
 slims = (minimum(abs, interior(s_timeseries)), maximum(abs, interior(s_timeseries)))
 ωlims = (minimum(abs, interior(ω_timeseries)), maximum(abs, interior(ω_timeseries)))
+
+xlims!(ax_avg_T, Tlims)
 
 hm_T = heatmap!(ax_T, T; colormap = :thermometer, colorrange = Tlims)
 Colorbar(fig[2,2], hm_T)
@@ -177,6 +182,7 @@ hm_s = heatmap!(ax_s, s; colormap = :speed, colorrange = slims)
 Colorbar(fig[3,2], hm_s)
 hm_ω = heatmap!(ax_ω, ω; colormap = :balance, colorrange = ωlims)
 Colorbar(fig[4,2])
+lines!(ax_avg_T, avg_T)
 
 title = @lift "t = " * prettytime(times[$n])
 Label(fig[1, 1:2], title, fontsize = 24, tellwidth=true)
