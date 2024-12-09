@@ -71,16 +71,12 @@ const Pr = 1
 const ν = sqrt(g * α * Δ * Lz^3 / (Pr * Ra))
 const κ = sqrt(g * α * Δ * Lz^3 * Pr / Ra)
 
-closure_1 = AnisotropicMinimumDissipation()
-closure_2 = (HorizontalScalarDiffusivity(ν=ν,κ=κ),
-             VerticalScalarDiffusivity(ν=ν,κ=κ)
-)
-closure_3 = ScalarDiffusivity(ν=ν,κ=κ)
+closure = ScalarDiffusivity(ν=ν,κ=κ)
 
 model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:T),
-                            closure = closure_3,
+                            closure = closure,
                             boundary_conditions = (; T=T_bcs)
 )
 
