@@ -16,4 +16,4 @@
 #SBATCH --mail-user sfbj55@durham.ac.uk
 
 # Run the program
-./julia-1.11.2/bin/julia RB.jl
+./julia-1.11.2/bin/julia ./OUTPUTS/supreme-broccoli/RB.jl
