@@ -36,7 +36,7 @@ z_faces(k) = Lz * (ζ₀(k) * Σ(k) - 1)
 
 grid = RectilinearGrid(CPU(); size = (Nx, Nz),
                        x = (0,Lx),
-                       z = z_faces,
+                       z = (-Lz,0),
                        topology = (Periodic, Flat, Bounded)
 )
 
@@ -71,12 +71,17 @@ const κ = sqrt(g * α * Δ * Lz^3 * Pr / Ra)
 
 closure = ScalarDiffusivity(ν=ν,κ=κ)
 
-random_wind(x,z,t) = 
+parameterized_random_wind_u(A,x,z,t) = A * exp(-x^2)   #abs(randn())
+u_forcing = Forcing(parameterized_random_wind_u, parameters = (A = 1e-10))
+
+parameterized_random_wind_w(a,x,z,t) = a
+w_forcing = Forcing(parameterized_random_wind_w, parameters = (a = 0))
 
 model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:T),
                             closure = closure,
+                            forcing = (; u=u_forcing),
                             boundary_conditions = (; T=T_bcs)
 )
 
@@ -97,7 +102,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=20seconds, stop_time = 12hours)
+simulation = Simulation(model, Δt=10seconds, stop_time = 1day)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
