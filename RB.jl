@@ -9,7 +9,7 @@ using Statistics
 using Oceananigans
 using Oceananigans.Units: seconds, minute, minutes, hour, hours, day, days
 
-filename = "RB_gpu_simulation"
+filename = "OUTPUTS\\RB_gpu_simulation"
 
 @info"Setting up model"
 
