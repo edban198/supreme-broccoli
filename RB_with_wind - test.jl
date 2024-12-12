@@ -71,18 +71,15 @@ const κ = sqrt(g * α * Δ * Lz^3 * Pr / Ra)
 
 closure = ScalarDiffusivity(ν=ν,κ=κ)
 
-parameterized_random_wind_u(A,x,z,t) = A * (sin(z/Lz))  #abs(randn())
-u_forcing = Forcing(parameterized_random_wind_u, parameters = (A = 1e-10))
+const τ = 5e-4 #wind flux
 
-parameterized_random_wind_w(a,x,z,t) = a
-w_forcing = Forcing(parameterized_random_wind_w, parameters = (a = 0))
+u_bcs(x,z,t) = FieldBoundaryConditions(top = FluxBoundaryCondition(τ))
 
 model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:T),
                             closure = closure,
-                            forcing = (; u=u_forcing),
-                            boundary_conditions = (; T=T_bcs)
+                            boundary_conditions = (T=T_bcs, u=u_bcs)
 )
 
 # Initial conditions
