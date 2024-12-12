@@ -9,12 +9,12 @@ using Statistics
 using Oceananigans
 using Oceananigans.Units: seconds, minute, minutes, hour, hours, day, days
 
-filename = "RB_gpu_simulation"
+filename = "OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 128     # number of points in each of horizontal directions
-const Nz = 64          # number of points in the vertical direction
+const Nx = 512     # number of points in each of horizontal directions
+const Nz = 196          # number of points in the vertical direction
 
 const Lx = 128     # (m) domain horizontal extents
 const Lz = 32          # (m) domain depth
@@ -71,15 +71,15 @@ const κ = sqrt(g * α * Δ * Lz^3 * Pr / Ra)
 
 closure = ScalarDiffusivity(ν=ν,κ=κ)
 
-const τ = 5e-4 #wind flux
+const τx = 5e-7 #wind flux
 
-u_bcs(x,z,t) = FieldBoundaryConditions(top = FluxBoundaryCondition(τ))
+u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
 
 model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:T),
                             closure = closure,
-                            boundary_conditions = (T=T_bcs, u=u_bcs)
+                            boundary_conditions = (T=T_bcs, u=u_bcs,)
 )
 
 # Initial conditions
@@ -99,7 +99,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=10seconds, stop_time = 2hours)
+simulation = Simulation(model, Δt=10seconds, stop_time = 20days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
@@ -123,7 +123,7 @@ outputs = (s = sqrt(model.velocities.u^2 + model.velocities.w^2),
            avg_T = Average(model.tracers.T, dims=(1, 2))
 )
 
-const data_interval = 2minutes
+const data_interval = 10minutes
 
 simulation.output_writers[:simple_outputs] =
     JLD2OutputWriter(model, outputs,
@@ -187,6 +187,6 @@ Label(fig[1, 1:2], title, fontsize = 24, tellwidth=true)
 #record movie
 frames = 1:length(times)
 @info "Making an animation..."
-record(fig, filename * ".mp4", frames, framerate=16) do i
+record(fig, filename * ".mp4", frames, framerate=32) do i
     n[] = i
 end
