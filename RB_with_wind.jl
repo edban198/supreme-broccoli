@@ -34,7 +34,7 @@ h(k) = (k - 1) / Nz
 # Generating function
 z_faces(k) = Lz * (ζ₀(k) * Σ(k) - 1)
 
-grid = RectilinearGrid(CPU(); size = (Nx, Nz),
+grid = RectilinearGrid(GPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (-Lz,0),
                        topology = (Periodic, Flat, Bounded)
@@ -99,7 +99,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=10seconds, stop_time = 20days)
+simulation = Simulation(model, Δt=10seconds, stop_time = 5days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
