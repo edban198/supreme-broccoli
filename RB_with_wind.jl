@@ -100,7 +100,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=10seconds, stop_time = 20days)
+simulation = Simulation(model, Δt=10seconds, stop_time = 120days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
@@ -152,7 +152,7 @@ set_theme!(Theme(fontsize = 24))
 
 fig = Figure(size = (1000,1200))
 
-axis_kwargs = (xlabel = "x (m)", ylabel = "z (m)"
+axis_kwargs = (xlabel = "x (km)", ylabel = "z (m)"
 )
 
 ax_T = Axis(fig[2,1]; title = L"Temperature, $T$", axis_kwargs...)
