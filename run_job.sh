@@ -5,10 +5,11 @@
 #cores in each node.
 # X,Y are integers. Refer to table for various combinations
 #SBATCH -N 1
-#SBATCH -c 1
-#SBATCH --gres=gpu
+#SBATCH -c 4
+#SBATCH --gres=gpu:pascal:1
 #SBATCH -p ug-gpu-small
 #SBATCH --qos=short
+#SBATCH -t 01:00:00
 
 #SBATCH --job-name=RB_gpu_simulation
 
@@ -16,4 +17,4 @@
 #SBATCH --mail-user sfbj55@durham.ac.uk
 
 # Run the program
-./julia-1.11.2/bin/julia ./OUTPUTS/supreme-broccoli/RB.jl
+./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/RB.jl
