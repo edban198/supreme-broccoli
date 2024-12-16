@@ -8,6 +8,7 @@ using LaTeXStrings
 using Statistics
 using Oceananigans
 using Oceananigans.Units: seconds, minute, minutes, hour, hours, day, days
+using Oceananigans.Units: kilometers, kilometer, meter, meters
 
 filename = "OUTPUTS/RB_gpu_simulation"
 
@@ -16,8 +17,8 @@ filename = "OUTPUTS/RB_gpu_simulation"
 const Nx = 512     # number of points in each of horizontal directions
 const Nz = 196          # number of points in the vertical direction
 
-const Lx = 128     # (m) domain horizontal extents
-const Lz = 32          # (m) domain depth
+const Lx = 200kilometers     # (m) domain horizontal extents
+const Lz = 2000meters          # (m) domain depth
 
 const refinement = 1.2 # controls spacing near surface (higher means finer spaced)
 const stretching = 12  # controls rate of stretching at bottom
@@ -99,7 +100,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=10seconds, stop_time = 5days)
+simulation = Simulation(model, Δt=10seconds, stop_time = 20days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
@@ -151,8 +152,7 @@ set_theme!(Theme(fontsize = 24))
 
 fig = Figure(size = (1000,1200))
 
-axis_kwargs = (xlabel = "x (m)", ylabel = "z (m)",
-               aspect = DataAspect()
+axis_kwargs = (xlabel = "x (m)", ylabel = "z (m)"
 )
 
 ax_T = Axis(fig[2,1]; title = L"Temperature, $T$", axis_kwargs...)
@@ -170,6 +170,16 @@ avg_T = @lift avg_T_timeseries[$n]
 Tlims = (minimum(abs, interior(T_timeseries)), maximum(abs, interior(T_timeseries)))
 slims = (minimum(abs, interior(s_timeseries)), maximum(abs, interior(s_timeseries)))
 ωlims = (minimum(abs, interior(ω_timeseries)), maximum(abs, interior(ω_timeseries)))
+
+# Set axis limits explicitly to match your domain
+xlims!(ax_T, 0, Lx)
+ylims!(ax_T, -Lz, 0)
+
+xlims!(ax_s, 0, Lx)
+ylims!(ax_s, -Lz, 0)
+
+xlims!(ax_ω, 0, Lx)
+ylims!(ax_ω, -Lz, 0)
 
 xlims!(ax_avg_T, Tlims)
 
