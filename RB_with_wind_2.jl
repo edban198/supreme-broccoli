@@ -78,7 +78,7 @@ u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
 
 model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
-                            tracers = (:T),
+                            tracers = (:b,:T),
                             closure = closure,
                             boundary_conditions = (u=u_bcs,)
 )
@@ -89,9 +89,8 @@ model = NonhydrostaticModel(; grid, buoyancy,
 Ξ(z) = randn()
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
-#Tᵢ(x, z) = 20
-dTdz = 1e-6
-Tᵢ(x, z) = 20 - dTdz * z + dTdz * model.grid.Lz * 1e-5 * Ξ(z)
+Tᵢ(x, z) = 20
+#Tᵢ(x, z) = 20 - dTdz * z + dTdz * model.grid.Lz * 1e-5 * Ξ(z)
 
 # Velocity initial condition:
 uᵢ(x, z) = 1e-6 * Ξ(z)
@@ -122,8 +121,8 @@ u,v,w = model.velocities
 
 outputs = (s = sqrt(model.velocities.u^2 + model.velocities.w^2),
            ω = Field(∂z(model.velocities.u) - ∂x(model.velocities.w)),
-           T = model.tracers.T,
-           avg_T = Average(model.tracers.T, dims=(1, 2))
+           w = model.velocities.w,
+           b = model.tracers.b
 )
 
 const data_interval = 10minutes
@@ -140,15 +139,11 @@ run!(simulation)
 
 @info"Plotting animation"
 
-T_timeseries = FieldTimeSeries(filename * ".jld2", "T")
+w_timeseries = FieldTimeSeries(filename * ".jld2", "w")
 s_timeseries = FieldTimeSeries(filename * ".jld2", "s")
 ω_timeseries = FieldTimeSeries(filename * ".jld2", "ω")
-avg_T_timeseries = FieldTimeSeries(filename * ".jld2", "avg_T")
-times = T_timeseries.times
-
-xT, zT = nodes(T_timeseries)
-xs, zx = nodes(s_timeseries)
-xω, zω = nodes(ω_timeseries)
+b_timeseries = FieldTimeSeries(filename * ".jld2", "b")
+times = w_timeseries.times
 
 set_theme!(Theme(fontsize = 24))
 
@@ -157,25 +152,31 @@ fig = Figure(size = (1000,1200))
 axis_kwargs = (xlabel = "x (km)", ylabel = "z (m)"
 )
 
-ax_T = Axis(fig[2,1]; title = L"Temperature, $T$", axis_kwargs...)
+ax_w = Axis(fig[2,1]; title = L"Veritcal Velocity, $w$", axis_kwargs...)
 ax_s = Axis(fig[3,1]; title = L"Speed, $s = \sqrt{u^2+w^2}$", axis_kwargs...)
 ax_ω = Axis(fig[4,1]; title = L"Vorticity, $\omega = \frac{\partial u}{\partial z} - \frac{\partial w}{\partial x}$", axis_kwargs...)
-ax_avg_T = Axis(fig[5,1]; title = L"Average Temperature over $x$", xlabel = "T", ylabel = "z(m)")
+ax_b = Axis(fig[5,1]; title = L"Buoyancy, $b$", axis_kwargs...)
 
 n = Observable(1)
 
-T = @lift T_timeseries[$n]
+w = @lift w_timeseries[$n]
 s = @lift s_timeseries[$n]
 ω = @lift ω_timeseries[$n]
-avg_T = @lift avg_T_timeseries[$n]
+b = @lift b_timeseries[$n]
 
-Tlims = (minimum(abs, interior(T_timeseries)), maximum(abs, interior(T_timeseries)))
+wlims = (minimum(abs, interior(w_timeseries)), maximum(abs, interior(w_timeseries)))
 slims = (minimum(abs, interior(s_timeseries)), maximum(abs, interior(s_timeseries)))
 ωlims = (minimum(abs, interior(ω_timeseries)), maximum(abs, interior(ω_timeseries)))
+blims = (minimum(abs, interior(b_timeseries)), maximum(abs, interior(b_timeseries)))
+
+@info wlims
+@info slims
+@info ωlims
+@info blims
 
 # Set axis limits explicitly to match your domain
-xlims!(ax_T, 0, Lx)
-ylims!(ax_T, -Lz, 0)
+xlims!(ax_w, 0, Lx)
+ylims!(ax_w, -Lz, 0)
 
 xlims!(ax_s, 0, Lx)
 ylims!(ax_s, -Lz, 0)
@@ -183,15 +184,20 @@ ylims!(ax_s, -Lz, 0)
 xlims!(ax_ω, 0, Lx)
 ylims!(ax_ω, -Lz, 0)
 
-xlims!(ax_avg_T, (20,20.01))
+xlims!(ax_b, 0, Lx)
+ylims!(ax_b, -Lz, 0)
 
-hm_T = heatmap!(ax_T, T; colormap = :thermometer, colorrange = Tlims)
-Colorbar(fig[2,2], hm_T)
+hm_w = heatmap!(ax_w, w; colormap = :balance, colorrange = wlims)
+Colorbar(fig[2,2], hm_w)
+
 hm_s = heatmap!(ax_s, s; colormap = :speed, colorrange = slims)
 Colorbar(fig[3,2], hm_s)
+
 hm_ω = heatmap!(ax_ω, ω; colormap = :balance, colorrange = ωlims)
 Colorbar(fig[4,2])
-lines!(ax_avg_T, avg_T)
+
+hm_b = heatmap!(ax_b, b; colormap = :balance)
+Colorbar(fig[5,2])
 
 title = @lift "t = " * prettytime(times[$n])
 Label(fig[1, 1:2], title, fontsize = 24, tellwidth=true)
