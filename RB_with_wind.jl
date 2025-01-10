@@ -14,11 +14,11 @@ filename = "OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 512     # number of points in each of horizontal directions
-const Nz = 196          # number of points in the vertical direction
+const Nx = 128     # number of points in each of horizontal directions
+const Nz = 32          # number of points in the vertical direction
 
-const Lx = 200kilometers     # (m) domain horizontal extents
-const Lz = 2000meters          # (m) domain depth
+const Lx = 10kilometers     # (m) domain horizontal extents
+const Lz = 1000meters          # (m) domain depth
 
 const refinement = 1.2 # controls spacing near surface (higher means finer spaced)
 const stretching = 12  # controls rate of stretching at bottom
@@ -35,7 +35,7 @@ h(k) = (k - 1) / Nz
 # Generating function
 z_faces(k) = Lz * (ζ₀(k) * Σ(k) - 1)
 
-grid = RectilinearGrid(GPU(); size = (Nx, Nz),
+grid = RectilinearGrid(CPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (-Lz,0),
                        topology = (Periodic, Flat, Bounded)
@@ -80,7 +80,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:T),
                             closure = closure,
-                            boundary_conditions = (T=T_bcs, u=u_bcs,)
+                            boundary_conditions = (u=u_bcs,)
 )
 
 # Initial conditions
@@ -90,6 +90,8 @@ model = NonhydrostaticModel(; grid, buoyancy,
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
 Tᵢ(x, z) = 20
+dTdz = 0.01
+Tᵢ(x, y, z) = 20 + dTdz * z + dTdz * model.grid.Lz * 1e-3 * Ξ(z)
 
 # Velocity initial condition:
 uᵢ(x, z) = 1e-6 * Ξ(z)
@@ -100,7 +102,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=10seconds, stop_time = 120days)
+simulation = Simulation(model, Δt=10seconds, stop_time = 2days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
@@ -181,7 +183,7 @@ ylims!(ax_s, -Lz, 0)
 xlims!(ax_ω, 0, Lx)
 ylims!(ax_ω, -Lz, 0)
 
-xlims!(ax_avg_T, Tlims)
+xlims!(ax_avg_T, (20,20.01))
 
 hm_T = heatmap!(ax_T, T; colormap = :thermometer, colorrange = Tlims)
 Colorbar(fig[2,2], hm_T)

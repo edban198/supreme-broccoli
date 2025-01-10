@@ -158,7 +158,7 @@ axis_kwargs = (xlabel = "x (km)", ylabel = "z (m)"
 )
 
 ax_T = Axis(fig[2,1]; title = L"Temperature, $T$", axis_kwargs...)
-ax_s = Axis(fig[3,1]; title = L"Speed, $s = \sqrt{u^2+v^2}$", axis_kwargs...)
+ax_s = Axis(fig[3,1]; title = L"Speed, $s = \sqrt{u^2+w^2}$", axis_kwargs...)
 ax_ω = Axis(fig[4,1]; title = L"Vorticity, $\omega = \frac{\partial u}{\partial z} - \frac{\partial w}{\partial x}$", axis_kwargs...)
 ax_avg_T = Axis(fig[5,1]; title = L"Average Temperature over $x$", xlabel = "T", ylabel = "z(m)")
 
