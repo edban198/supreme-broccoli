@@ -49,14 +49,14 @@ buoyancy = SeawaterBuoyancy(equation_of_state = TEOS10EquationOfState())
 const Δ = 1e-3
 const Γ = 1e-6
 #RB1
-T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(20), bottom = ValueBoundaryCondition(20+Δ))
+#T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(20), bottom = ValueBoundaryCondition(20+Δ))
 #RB2
 #T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Γ), bottom = FluxBoundaryCondition(Γ))
 #RB3
 #T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(20), bottom = FluxBoundaryCondition(Γ))
 
-const g = buoyancy.gravitational_acceleration
-const α = buoyancy.equation_of_state.thermal_expansion
+#const g = buoyancy.gravitational_acceleration
+#const α = buoyancy.equation_of_state.thermal_expansion
 
 #=
 const ν = 1e-3
@@ -72,7 +72,10 @@ const Pr = 1
 const ν = sqrt(g * α * Δ * Lz^3 / (Pr * Ra))
 const κ = sqrt(g * α * Δ * Lz^3 * Pr / Ra)
 
-closure = ScalarDiffusivity(ν=ν,κ=κ)
+closure = ScalarDiffusivity()
+
+sim_length = 20days
+Δt = 20seconds
 
 const τx = 5e-7 #wind flux
 
@@ -103,7 +106,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=10seconds, stop_time = 20days)
+simulation = Simulation(model, Δt=Δt, stop_time = sim_length)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
