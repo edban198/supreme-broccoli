@@ -6,6 +6,7 @@ using Printf
 using CairoMakie
 using LaTeXStrings
 using Statistics
+using SeawaterPolynomials.TEOS10: TEOS10EquationOfState
 using Oceananigans
 using Oceananigans.Units: seconds, minute, minutes, hour, hours, day, days
 using Oceananigans.Units: kilometers, kilometer, meter, meters
@@ -14,8 +15,8 @@ filename = "OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 128     # number of points in each of horizontal directions
-const Nz = 32          # number of points in the vertical direction
+const Nx = 512     # number of points in each of horizontal directions
+const Nz = 196          # number of points in the vertical direction
 
 const Lx = 10kilometers     # (m) domain horizontal extents
 const Lz = 1000meters          # (m) domain depth
@@ -42,7 +43,8 @@ grid = RectilinearGrid(CPU(); size = (Nx, Nz),
 )
 
 # Buoyancy that depends on temperature:
-buoyancy = SeawaterBuoyancy(constant_salinity = 0)
+
+buoyancy = SeawaterBuoyancy(equation_of_state = TEOS10EquationOfState())
 
 const Δ = 1e-3
 const Γ = 1e-6
@@ -101,7 +103,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=10seconds, stop_time = 2days)
+simulation = Simulation(model, Δt=10seconds, stop_time = 20days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
