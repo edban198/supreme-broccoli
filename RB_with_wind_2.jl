@@ -36,7 +36,7 @@ h(k) = (k - 1) / Nz
 # Generating function
 z_faces(k) = Lz * (ζ₀(k) * Σ(k) - 1)
 
-grid = RectilinearGrid(CPU(); size = (Nx, Nz),
+grid = RectilinearGrid(GPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (-Lz,0),
                        topology = (Periodic, Flat, Bounded)
