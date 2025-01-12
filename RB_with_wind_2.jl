@@ -66,11 +66,11 @@ const Ra = g * α * Δ * Lz^3 / (ν * κ)
 const Pr = ν/κ
 =#
 
-const Ra = 1e12
-const Pr = 1
+#const Ra = 1e12
+#const Pr = 1
 
-const ν = sqrt(g * α * Δ * Lz^3 / (Pr * Ra))
-const κ = sqrt(g * α * Δ * Lz^3 * Pr / Ra)
+#const ν = sqrt(g * α * Δ * Lz^3 / (Pr * Ra))
+#const κ = sqrt(g * α * Δ * Lz^3 * Pr / Ra)
 
 closure = ScalarDiffusivity()
 
