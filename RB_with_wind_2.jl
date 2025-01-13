@@ -74,10 +74,10 @@ const Pr = ν/κ
 
 closure = ScalarDiffusivity()
 
-sim_length = 20days
+sim_length = 50days
 Δt = 20seconds
 
-const τx = 5e-7 #wind flux
+const τx = 1e-6 #wind flux
 
 u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
 
