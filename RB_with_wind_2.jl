@@ -15,8 +15,8 @@ filename = "OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 512     # number of points in each of horizontal directions
-const Nz = 196          # number of points in the vertical direction
+const Nx = 64     # number of points in each of horizontal directions
+const Nz = 32          # number of points in the vertical direction
 
 const Lx = 10kilometers     # (m) domain horizontal extents
 const Lz = 1000meters          # (m) domain depth
@@ -36,7 +36,7 @@ h(k) = (k - 1) / Nz
 # Generating function
 z_faces(k) = Lz * (ζ₀(k) * Σ(k) - 1)
 
-grid = RectilinearGrid(GPU(); size = (Nx, Nz),
+grid = RectilinearGrid(CPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (-Lz,0),
                        topology = (Periodic, Flat, Bounded)
@@ -74,18 +74,34 @@ const Pr = ν/κ
 
 closure = ScalarDiffusivity()
 
-sim_length = 50days
+sim_length = 2days
 Δt = 20seconds
 
 const τx = 1e-6 #wind flux
 
 u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
 
+heaviside(x) = ifelse(x<0, zero(x), one(x))
+
+const H = grid.Lz
+
+sponge_one = minimum(Oceananigans.Grids.znodes(grid, Face()))
+sponge_zero = sponge_one + grid.Lz/10
+
+function bottom_mask_func(x,z)
+    sponge_one = -H/2
+    sponge_zero = sponge_one + H/10
+    return heaviside(-(z-sponge_zero)) * (z-sponge_zero)^2 / (sponge_one-sponge_zero)^2
+end
+
+sponge = Relaxation(rate = 1/10minutes, mask = bottom_mask_func, target=0)
+
 model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:b,:T,:S),
                             closure = closure,
-                            boundary_conditions = (u=u_bcs,)
+                            boundary_conditions = (u=u_bcs,),
+                            forcing = (w=sponge,)
 )
 
 # Initial conditions
