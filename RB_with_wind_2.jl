@@ -15,8 +15,8 @@ filename = "OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 64     # number of points in each of horizontal directions
-const Nz = 32          # number of points in the vertical direction
+const Nx = 512     # number of points in each of horizontal directions
+const Nz = 196          # number of points in the vertical direction
 
 const Lx = 10kilometers     # (m) domain horizontal extents
 const Lz = 1000meters          # (m) domain depth
@@ -36,7 +36,7 @@ h(k) = (k - 1) / Nz
 # Generating function
 z_faces(k) = Lz * (ζ₀(k) * Σ(k) - 1)
 
-grid = RectilinearGrid(CPU(); size = (Nx, Nz),
+grid = RectilinearGrid(GPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (-Lz,0),
                        topology = (Periodic, Flat, Bounded)
@@ -74,7 +74,7 @@ const Pr = ν/κ
 
 closure = ScalarDiffusivity()
 
-sim_length = 2days
+sim_length = 50days
 Δt = 20seconds
 
 const τx = 1e-6 #wind flux
