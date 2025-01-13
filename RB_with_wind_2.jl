@@ -83,7 +83,7 @@ u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
 
 model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
-                            tracers = (:b,:T),
+                            tracers = (:T,:S),
                             closure = closure,
                             boundary_conditions = (u=u_bcs,)
 )
@@ -200,9 +200,6 @@ Colorbar(fig[3,2], hm_s)
 
 hm_ω = heatmap!(ax_ω, ω; colormap = :balance, colorrange = ωlims)
 Colorbar(fig[4,2])
-
-hm_b = heatmap!(ax_b, b; colormap = :balance)
-Colorbar(fig[5,2])
 
 title = @lift "t = " * prettytime(times[$n])
 Label(fig[1, 1:2], title, fontsize = 24, tellwidth=true)
