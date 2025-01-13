@@ -83,7 +83,7 @@ u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
 
 model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
-                            tracers = (:T,:S),
+                            tracers = (:b,:T,:S),
                             closure = closure,
                             boundary_conditions = (u=u_bcs,)
 )
