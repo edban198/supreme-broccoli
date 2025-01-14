@@ -77,7 +77,7 @@ closure = ScalarDiffusivity()
 sim_length = 50days
 Δt = 20seconds
 
-const τx = 1e-6 #wind flux
+const τx = 1e-5 #wind flux
 
 u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
 
@@ -89,7 +89,7 @@ sponge_one = minimum(Oceananigans.Grids.znodes(grid, Face()))
 sponge_zero = sponge_one + grid.Lz/10
 
 function bottom_mask_func(x,z)
-    sponge_one = -H/2
+    sponge_one = -H/4
     sponge_zero = sponge_one + H/10
     return heaviside(-(z-sponge_zero)) * (z-sponge_zero)^2 / (sponge_one-sponge_zero)^2
 end
@@ -100,8 +100,8 @@ model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:b,:T,:S),
                             closure = closure,
-                            boundary_conditions = (u=u_bcs,),
-                            forcing = (w=sponge,)
+                            boundary_conditions = (u=u_bcs,)#=,
+                            forcing = (w=sponge,)=#
 )
 
 # Initial conditions
@@ -142,8 +142,7 @@ u,v,w = model.velocities
 
 outputs = (s = sqrt(model.velocities.u^2 + model.velocities.w^2),
            ω = Field(∂z(model.velocities.u) - ∂x(model.velocities.w)),
-           w = model.velocities.w,
-           b = model.tracers.b
+           w = model.velocities.w
 )
 
 const data_interval = 10minutes
