@@ -176,24 +176,20 @@ axis_kwargs = (xlabel = "x (km)", ylabel = "z (m)"
 ax_w = Axis(fig[2,1]; title = L"Veritcal Velocity, $w$", axis_kwargs...)
 ax_s = Axis(fig[3,1]; title = L"Speed, $s = \sqrt{u^2+w^2}$", axis_kwargs...)
 ax_ω = Axis(fig[4,1]; title = L"Vorticity, $\omega = \frac{\partial u}{\partial z} - \frac{\partial w}{\partial x}$", axis_kwargs...)
-ax_b = Axis(fig[5,1]; title = L"Buoyancy, $b$", axis_kwargs...)
 
 n = Observable(1)
 
 w = @lift w_timeseries[$n]
 s = @lift s_timeseries[$n]
 ω = @lift ω_timeseries[$n]
-b = @lift b_timeseries[$n]
 
 wlims = (minimum(abs, interior(w_timeseries)), maximum(abs, interior(w_timeseries)))
 slims = (minimum(abs, interior(s_timeseries)), maximum(abs, interior(s_timeseries)))
 ωlims = (minimum(abs, interior(ω_timeseries)), maximum(abs, interior(ω_timeseries)))
-blims = (minimum(abs, interior(b_timeseries)), maximum(abs, interior(b_timeseries)))
 
 @info wlims
 @info slims
 @info ωlims
-@info blims
 
 # Set axis limits explicitly to match your domain
 xlims!(ax_w, 0, Lx)
@@ -204,9 +200,6 @@ ylims!(ax_s, -Lz, 0)
 
 xlims!(ax_ω, 0, Lx)
 ylims!(ax_ω, -Lz, 0)
-
-xlims!(ax_b, 0, Lx)
-ylims!(ax_b, -Lz, 0)
 
 hm_w = heatmap!(ax_w, w; colormap = :balance, colorrange = wlims)
 Colorbar(fig[2,2], hm_w)
