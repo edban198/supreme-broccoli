@@ -72,7 +72,7 @@ const Pr = ν/κ
 #const ν = sqrt(g * α * Δ * Lz^3 / (Pr * Ra))
 #const κ = sqrt(g * α * Δ * Lz^3 * Pr / Ra)
 
-closure = ScalarDiffusivity(κ=1.4e-7)
+closure = ScalarDiffusivity(ν=1e-3, κ=1.4e-7)
 
 sim_length = 50days
 Δt = 20seconds
