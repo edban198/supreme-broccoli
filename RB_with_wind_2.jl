@@ -77,7 +77,13 @@ closure = ScalarDiffusivity()
 sim_length = 50days
 Δt = 20seconds
 
-const τx = 1e-5 #wind flux
+const u₁₀ = 10    # m s⁻¹, average wind velocity 10 meters above the ocean
+const cᴰ = 2.5e-3 # dimensionless drag coefficient
+const ρₐ = 1.225  # kg m⁻³, average density of air at sea-level
+
+const τx = - ρₐ / ρₒ * cᴰ * u₁₀ * abs(u₁₀) # m² s⁻²
+
+#const τx = 1e-5 #wind flux
 
 u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
 
