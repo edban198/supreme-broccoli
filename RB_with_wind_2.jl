@@ -94,7 +94,7 @@ function bottom_mask_func(x,z)
     return heaviside(-(z-sponge_zero)) * (z-sponge_zero)^2 / (sponge_one-sponge_zero)^2
 end
 
-sponge = Relaxation(rate = 1/10minutes, mask = bottom_mask_func, target=0)
+sponge = Relaxation(rate = 1/30minutes, mask = bottom_mask_func, target=0)
 
 model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
