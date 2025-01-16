@@ -153,7 +153,7 @@ outputs = (s = sqrt(model.velocities.u^2 + model.velocities.w^2),
            w = model.velocities.w
 )
 
-const data_interval = 10minutes
+const data_interval = 20minutes
 
 simulation.output_writers[:simple_outputs] =
     JLD2OutputWriter(model, outputs,
@@ -223,6 +223,6 @@ Label(fig[1, 1:2], title, fontsize = 24, tellwidth=true)
 #record movie
 frames = 1:length(times)
 @info "Making an animation..."
-record(fig, filename * ".mp4", frames, framerate=8) do i
+record(fig, filename * ".mp4", frames, framerate=4) do i
     n[] = i
 end
