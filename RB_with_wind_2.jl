@@ -44,7 +44,7 @@ grid = RectilinearGrid(GPU(); size = (Nx, Nz),
 
 # Buoyancy that depends on temperature:
 
-buoyancy = SeawaterBuoyancy(equation_of_state = TEOS10EquationOfState())
+buoyancy = SeawaterBuoyancy(equation_of_state = LinearEquationOfState())
 
 const Δ = 1e-3
 const Γ = 1e-6
@@ -75,7 +75,7 @@ const Pr = ν/κ
 #closure = ScalarDiffusivity(ν=1e-3, κ=1.4e-7)
 closure = ScalarDiffusivity()
 
-sim_length = 50days
+sim_length = 5days
 Δt = 20seconds
 
 const ρₒ = 1026.0 # kg m⁻³, average density at the surface of the world ocean
@@ -83,7 +83,7 @@ const u₁₀ = 10    # m s⁻¹, average wind velocity 10 meters above the ocea
 const cᴰ = 2.5e-3 # dimensionless drag coefficient
 const ρₐ = 1.225  # kg m⁻³, average density of air at sea-level
 
-const τx = - ρₐ / ρₒ * cᴰ * u₁₀ * abs(u₁₀) # m² s⁻²
+const τx = ρₐ / ρₒ * cᴰ * u₁₀ * abs(u₁₀) # m² s⁻²
 
 #const τx = 1e-5 #wind flux
 
