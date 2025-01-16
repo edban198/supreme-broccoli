@@ -87,7 +87,7 @@ const τx = ρₐ / ρₒ * cᴰ * u₁₀ * abs(u₁₀) # m² s⁻²
 
 #const τx = 1e-5 #wind flux
 
-u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
+u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx/10))
 
 heaviside(x) = ifelse(x<0, zero(x), one(x))
 
