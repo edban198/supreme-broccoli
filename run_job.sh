@@ -17,4 +17,6 @@
 #SBATCH --mail-user sfbj55@durham.ac.uk
 
 # Run the program
-./julia-1.11.2/bin/julia ./RB_with_wind_2.jl
+cd
+
+./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/RB_with_wind_2.jl
