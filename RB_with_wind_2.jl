@@ -15,7 +15,7 @@ filename = "OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 512     # number of points in each of horizontal directions
+const Nx = 1024     # number of points in each of horizontal directions
 const Nz = 196          # number of points in the vertical direction
 
 const Lx = 10kilometers     # (m) domain horizontal extents
@@ -74,7 +74,7 @@ const Pr = ν/κ
 #closure = ScalarDiffusivity(ν=1e-3, κ=1.4e-7)
 closure = ScalarDiffusivity()
 
-sim_length = 5days
+sim_length = 50days
 Δt = 20seconds
 
 const ρₒ = 1026.0 # kg m⁻³, average density at the surface of the world ocean
