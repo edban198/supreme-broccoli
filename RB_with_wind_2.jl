@@ -152,7 +152,7 @@ outputs = (s = sqrt(model.velocities.u^2 + model.velocities.w^2),
            w = model.velocities.w
 )
 
-const data_interval = 20minutes
+const data_interval = 10minutes
 
 simulation.output_writers[:simple_outputs] =
     JLD2OutputWriter(model, outputs,
@@ -213,7 +213,7 @@ hm_s = heatmap!(ax_s, s; colormap = :speed, colorrange = slims)
 Colorbar(fig[3,2], hm_s)
 
 hm_ω = heatmap!(ax_ω, ω; colormap = :balance, colorrange = ωlims)
-Colorbar(fig[4,2])
+Colorbar(fig[4,2], hm_ω)
 
 title = @lift "t = " * prettytime(times[$n])
 Label(fig[1, 1:2], title, fontsize = 24, tellwidth=true)
