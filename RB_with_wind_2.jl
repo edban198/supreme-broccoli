@@ -44,7 +44,7 @@ grid = RectilinearGrid(GPU(); size = (Nx, Nz),
 
 # Buoyancy that depends on temperature:
 
-buoyancy = SeawaterBuoyancy(equation_of_state = LinearEquationOfState())
+buoyancy = SeawaterBuoyancy()
 
 const Δ = 1e-3
 const Γ = 1e-6
