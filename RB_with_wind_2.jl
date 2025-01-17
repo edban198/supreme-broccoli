@@ -54,7 +54,24 @@ const Γ = 1e-6
 #T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Γ), bottom = FluxBoundaryCondition(Γ))
 #RB3
 #T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(20), bottom = FluxBoundaryCondition(Γ))
+#const g = buoyancy.gravitational_acceleration
+#const α = buoyancy.equation_of_state.thermal_expansion
 
+#=
+const ν = 1e-3
+const κ = 1e-6
+
+const Ra = g * α * Δ * Lz^3 / (ν * κ)
+const Pr = ν/κ
+=#
+
+#const Ra = 1e12
+#const Pr = 1
+
+#const ν = sqrt(g * α * Δ * Lz^3 / (Pr * Ra))
+#const κ = sqrt(g * α * Δ * Lz^3 * Pr / Ra)
+
+#closure = ScalarDiffusivity(ν=1e-3, κ=1.4e-7)
 closure = ScalarDiffusivity()
 
 sim_length = 5days
