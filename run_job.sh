@@ -17,9 +17,7 @@
 #SBATCH --mail-user sfbj55@durham.ac.uk
 
 #Navigate to the directory where the script is located
-PWD = $PWD
-CODE_DIR = $PWD/CODE/supreme-broccoli/
-cd $CODE_DIR
+cd $home/sfbj55/CODE/supreme-broccoli/
 
 # Run the program
 ./julia-1.11.2/bin/julia ./RB_with_wind_2.jl
