@@ -16,8 +16,5 @@
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user sfbj55@durham.ac.uk
 
-#Navigate to the directory where the script is located
-cd $home/sfbj55/CODE/supreme-broccoli/
-
 # Run the program
 ./julia-1.11.2/bin/julia ./RB_with_wind_2.jl
