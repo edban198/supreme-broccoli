@@ -169,7 +169,6 @@ run!(simulation)
 w_timeseries = FieldTimeSeries(filename * ".jld2", "w")
 s_timeseries = FieldTimeSeries(filename * ".jld2", "s")
 ω_timeseries = FieldTimeSeries(filename * ".jld2", "ω")
-b_timeseries = FieldTimeSeries(filename * ".jld2", "b")
 times = w_timeseries.times
 
 set_theme!(Theme(fontsize = 24))
