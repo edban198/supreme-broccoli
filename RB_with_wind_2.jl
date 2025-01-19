@@ -36,7 +36,7 @@ h(k) = (k - 1) / Nz
 # Generating function
 z_faces(k) = Lz * (ζ₀(k) * Σ(k) - 1)
 
-grid = RectilinearGrid(GPU(); size = (Nx, Nz),
+grid = RectilinearGrid(CPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (-Lz,0),
                        topology = (Periodic, Flat, Bounded)
@@ -71,8 +71,7 @@ const Pr = ν/κ
 #const ν = sqrt(g * α * Δ * Lz^3 / (Pr * Ra))
 #const κ = sqrt(g * α * Δ * Lz^3 * Pr / Ra)
 
-#closure = ScalarDiffusivity(ν=1e-3, κ=1.4e-7)
-closure = ScalarDiffusivity()
+closure = ScalarDiffusivity(ν=1e-6, κ=(T=1.4e-7, S=1e-9))
 
 sim_length = 50days
 Δt = 20seconds
@@ -105,7 +104,7 @@ sponge = Relaxation(rate = 1/30minutes, mask = bottom_mask_func, target=0)
 
 model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
-                            tracers = (:b,:T,:S),
+                            tracers = (:T,:S),
                             closure = closure,
                             boundary_conditions = (u=u_bcs,)#=,
                             forcing = (w=sponge,)=#
