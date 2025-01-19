@@ -73,7 +73,7 @@ const Pr = ν/κ
 
 closure = ScalarDiffusivity(ν=1e-6, κ=(T=1.4e-7, S=1e-9))
 
-sim_length = 50days
+sim_length = 20days
 Δt = 20seconds
 
 const ρₒ = 1026.0 # kg m⁻³, average density at the surface of the world ocean
