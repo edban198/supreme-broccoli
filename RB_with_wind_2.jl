@@ -15,8 +15,8 @@ filename = "OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 1024     # number of points in each of horizontal directions
-const Nz = 196          # number of points in the vertical direction
+const Nx = 128     # number of points in each of horizontal directions
+const Nz = 32          # number of points in the vertical direction
 
 const Lx = 10kilometers     # (m) domain horizontal extents
 const Lz = 1000meters          # (m) domain depth
@@ -36,7 +36,7 @@ h(k) = (k - 1) / Nz
 # Generating function
 z_faces(k) = Lz * (ζ₀(k) * Σ(k) - 1)
 
-grid = RectilinearGrid(CPU(); size = (Nx, Nz),
+grid = RectilinearGrid(GPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (-Lz,0),
                        topology = (Periodic, Flat, Bounded)
@@ -44,7 +44,11 @@ grid = RectilinearGrid(CPU(); size = (Nx, Nz),
 
 # Buoyancy that depends on temperature:
 
-buoyancy = SeawaterBuoyancy()
+gravitational_acceleration = 9.81 # m s⁻²
+α = 2e-4
+
+teos10 = TEOS10EquationOfState()
+buoyancy = SeawaterBuoyancy(equation_of_state=teos10, constant_salinity=35, constant_temperature=20)
 
 const Δ = 1e-3
 const Γ = 1e-6
@@ -71,7 +75,7 @@ const Pr = ν/κ
 #const ν = sqrt(g * α * Δ * Lz^3 / (Pr * Ra))
 #const κ = sqrt(g * α * Δ * Lz^3 * Pr / Ra)
 
-closure = ScalarDiffusivity(ν=1e-6, κ=(T=1.4e-7, S=1e-9))
+closure = ScalarDiffusivity(ν=1e-6, κ=1.4e-7)
 
 sim_length = 20days
 Δt = 20seconds
