@@ -6,7 +6,7 @@
 # X,Y are integers. Refer to table for various combinations
 #SBATCH -N 1
 #SBATCH -c 4
-#SBATCH --gres=gpu:pascal:1
+#SBATCH --gres=gpu:ampere:1
 #SBATCH -p ug-gpu-small
 #SBATCH --qos=short
 #SBATCH -t 08:00:00
