@@ -15,10 +15,10 @@ filename = "OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 128     # number of points in each of horizontal directions
-const Nz = 32          # number of points in the vertical direction
+const Nx = 1024     # number of points in each of horizontal directions
+const Nz = 196          # number of points in the vertical direction
 
-const Lx = 10kilometers     # (m) domain horizontal extents
+const Lx = 5kilometers     # (m) domain horizontal extents
 const Lz = 1000meters          # (m) domain depth
 
 const refinement = 1.2 # controls spacing near surface (higher means finer spaced)
@@ -48,7 +48,7 @@ gravitational_acceleration = 9.81 # m s⁻²
 α = 2e-4
 
 teos10 = TEOS10EquationOfState()
-buoyancy = SeawaterBuoyancy(equation_of_state=teos10, constant_salinity=35, constant_temperature=20)
+buoyancy = SeawaterBuoyancy(equation_of_state=teos10)
 
 const Δ = 1e-3
 const Γ = 1e-6

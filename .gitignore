@@ -2,3 +2,5 @@
 *.jl~  # Temporary Julia files
 .vscode/
 .OUTPUTS/
+*.mp4
+*.jld2
