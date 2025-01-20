@@ -75,7 +75,8 @@ const Pr = ν/κ
 #const ν = sqrt(g * α * Δ * Lz^3 / (Pr * Ra))
 #const κ = sqrt(g * α * Δ * Lz^3 * Pr / Ra)
 
-closure = ScalarDiffusivity(ν=1e-6, κ=1.4e-7)
+#closure = ScalarDiffusivity(ν=1e-6, κ=1.4e-7)
+closure = ScalarDiffusivity()
 
 sim_length = 20days
 Δt = 20seconds
@@ -89,7 +90,7 @@ const τx = ρₐ / ρₒ * cᴰ * u₁₀ * abs(u₁₀) # m² s⁻²
 
 #const τx = 1e-5 #wind flux
 
-u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx/10))
+u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
 
 heaviside(x) = ifelse(x<0, zero(x), one(x))
 
