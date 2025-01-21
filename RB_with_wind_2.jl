@@ -90,7 +90,7 @@ const τx = ρₐ / ρₒ * cᴰ * u₁₀ * abs(u₁₀) # m² s⁻²
 
 #const τx = 1e-5 #wind flux
 
-u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
+u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx/5))
 
 heaviside(x) = ifelse(x<0, zero(x), one(x))
 
@@ -111,8 +111,8 @@ model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:T,:S),
                             closure = closure,
-                            boundary_conditions = (u=u_bcs,),
-                            forcing = (w=sponge,)
+                            boundary_conditions = (u=u_bcs,)#=,
+                            forcing = (w=sponge,)=#
 )
 
 # Initial conditions
