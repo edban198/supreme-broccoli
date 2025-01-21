@@ -192,9 +192,9 @@ w = @lift w_timeseries[$n]
 s = @lift s_timeseries[$n]
 ω = @lift ω_timeseries[$n]
 
-wlims = (minimum(abs, interior(w_timeseries)), maximum(abs, interior(w_timeseries)))
-slims = (minimum(abs, interior(s_timeseries)), maximum(abs, interior(s_timeseries)))
-ωlims = (minimum(abs, interior(ω_timeseries)), maximum(abs, interior(ω_timeseries)))
+wlims = (minimum(interior(w_timeseries)), maximum(interior(w_timeseries)))
+slims = (minimum(interior(s_timeseries)), maximum(interior(s_timeseries)))
+ωlims = (minimum(interior(ω_timeseries)), maximum(interior(ω_timeseries)))
 
 @info wlims
 @info slims
@@ -225,6 +225,6 @@ Label(fig[1, 1:2], title, fontsize = 24, tellwidth=true)
 #record movie
 frames = 1:length(times)
 @info "Making an animation..."
-record(fig, filename * ".mp4", frames, framerate=4) do i
+record(fig, filename * ".mp4", frames, framerate=6) do i
     n[] = i
 end
