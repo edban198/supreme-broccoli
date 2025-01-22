@@ -95,14 +95,14 @@ u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx/5))
 heaviside(x) = ifelse(x<0, zero(x), one(x))
 
 const H = grid.Lz
-
+#=
 sponge_one = minimum(Oceananigans.Grids.znodes(grid, Face()))
 sponge_zero = sponge_one + grid.Lz/10
-
+=#
 function bottom_mask_func(x,z)
     sponge_one = -H/4
     sponge_zero = sponge_one + H/10
-    return heaviside(-(z-sponge_zero)) * (z-sponge_zero)^2 / (sponge_one-sponge_zero)^2
+    return heaviside(-(z-sponge_zero)) * 200*(z-sponge_zero)^2 / (sponge_one-sponge_zero)^2
 end
 
 sponge = Relaxation(rate = 1/30minutes, mask = bottom_mask_func, target=0)
@@ -111,8 +111,8 @@ model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:T,:S),
                             closure = closure,
-                            boundary_conditions = (u=u_bcs,)#=,
-                            forcing = (w=sponge,)=#
+                            boundary_conditions = (u=u_bcs,),
+                            forcing = (w=sponge,)
 )
 
 # Initial conditions
