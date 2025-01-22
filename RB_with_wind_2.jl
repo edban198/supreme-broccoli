@@ -78,7 +78,7 @@ const Pr = ν/κ
 #closure = ScalarDiffusivity(ν=1e-6, κ=1.4e-7)
 closure = ScalarDiffusivity()
 
-sim_length = 20days
+sim_length = 10days
 Δt = 20seconds
 
 const ρₒ = 1026.0 # kg m⁻³, average density at the surface of the world ocean
@@ -139,7 +139,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 simulation = Simulation(model, Δt=Δt, stop_time = sim_length)
 
-wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
+wizard = TimeStepWizard(cfl=1.0, max_Δt=1minute)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
 
 # Print a progress message
@@ -152,6 +152,11 @@ progress_message(sim) = @printf("Iteration: %04d, time: %s, Δt: %s, max(|u|) = 
 add_callback!(simulation, progress_message, IterationInterval(100))
 
 # Output
+
+@info"Running the simulation..."
+run!(simulation)
+
+simulation.stop_time = 20days
 
 u,v,w = model.velocities
 
@@ -169,7 +174,7 @@ simulation.output_writers[:simple_outputs] =
                      overwrite_existing = true
 )
 
-@info"Running the simulation..."
+@info "restarting sim"
 run!(simulation)
 
 @info"Plotting animation"
