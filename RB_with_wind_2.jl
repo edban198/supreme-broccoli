@@ -156,7 +156,7 @@ add_callback!(simulation, progress_message, IterationInterval(100))
 u,v,w = model.velocities
 
 outputs = (s = sqrt(model.velocities.u^2 + model.velocities.w^2),
-           ω = Field(∂z(model.velocities.u) - ∂x(model.velocities.w)),
+           ω = ∂z(model.velocities.u) - ∂x(model.velocities.w),
            w = model.velocities.w
 )
 
