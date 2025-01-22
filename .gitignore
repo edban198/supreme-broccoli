@@ -4,3 +4,4 @@
 .OUTPUTS/
 *.mp4
 *.jld2
+*.png
