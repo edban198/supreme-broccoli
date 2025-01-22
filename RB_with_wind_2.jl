@@ -105,6 +105,10 @@ function bottom_mask_func(x,z)
     return heaviside(-(z-sponge_zero)) * 200*(z-sponge_zero)^2 / (sponge_one-sponge_zero)^2
 end
 
+function mask_tanh(z)
+    return -10 * (tanh((z+H/2)) - 1)
+end
+
 sponge = Relaxation(rate = 1/30minutes, mask = bottom_mask_func, target=0)
 
 model = NonhydrostaticModel(; grid, buoyancy,
