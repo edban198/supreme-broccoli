@@ -111,8 +111,8 @@ model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:T,:S),
                             closure = closure,
-                            boundary_conditions = (u=u_bcs,),
-                            forcing = (w=sponge,)
+                            boundary_conditions = (u=u_bcs,)#=,
+                            forcing = (w=sponge,)=#
 )
 
 # Initial conditions
@@ -156,7 +156,7 @@ outputs = (s = sqrt(model.velocities.u^2 + model.velocities.w^2),
            w = model.velocities.w
 )
 
-const data_interval = 10minutes
+const data_interval = 2minutes
 
 simulation.output_writers[:simple_outputs] =
     JLD2OutputWriter(model, outputs,
@@ -225,6 +225,6 @@ Label(fig[1, 1:2], title, fontsize = 24, tellwidth=true)
 #record movie
 frames = 1:length(times)
 @info "Making an animation..."
-record(fig, filename * ".mp4", frames, framerate=6) do i
+record(fig, filename * ".mp4", frames, framerate=16) do i
     n[] = i
 end
