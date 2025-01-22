@@ -9,12 +9,12 @@ def heaviside(x):
     return np.where(x < 0, 0.0, 1.0)
 
 # Sponge region boundaries
-sponge_one = -H / 4
+sponge_one = -H / 2
 sponge_zero = sponge_one + H / 10
 
 # Bottom mask function
 def bottom_mask_func(z):
-    return heaviside(-(z - sponge_zero))# * ((z - sponge_zero) ** 2) / ((sponge_one - sponge_zero) ** 2)
+    return heaviside(-(z - sponge_zero)) * 200 * ((z - sponge_zero) ** 2) / ((sponge_one - sponge_zero) ** 2)
 
 # Generate z-values for plotting
 z_values = np.linspace(-H, 0, 500)  # From -H to 0 with 500 points
