@@ -106,7 +106,7 @@ function bottom_mask_func(z)
 end
 
 function mask_tanh(z)
-    return -10 * (tanh((z+H/2)) - 1)
+    return - (tanh((z+H/2)) - 1)
 end
 
 sponge = Relaxation(rate = 1/30minutes, mask = mask_tanh, target=0)
