@@ -15,8 +15,8 @@ filename = "OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 64     # number of points in each of horizontal directions
-const Nz = 32          # number of points in the vertical direction
+const Nx = 1024     # number of points in each of horizontal directions
+const Nz = 256          # number of points in the vertical direction
 
 const Lx = 5kilometers     # (m) domain horizontal extents
 const Lz = 1000meters          # (m) domain depth
@@ -36,7 +36,7 @@ h(k) = (k - 1) / Nz
 # Generating function
 z_faces(k) = Lz * (ζ₀(k) * Σ(k) - 1)
 
-grid = RectilinearGrid(CPU(); size = (Nx, Nz),
+grid = RectilinearGrid(GPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (-Lz,0),
                        topology = (Periodic, Flat, Bounded)
@@ -88,7 +88,10 @@ const ρₐ = 1.225  # kg m⁻³, average density of air at sea-level
 
 const τx = ρₐ / ρₒ * cᴰ * u₁₀ * abs(u₁₀) # m² s⁻²
 
-u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx/5))
+#u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx/5))
+
+const A = 1e-4 #Amplitude of random forcing
+u_bcs = FieldBoundaryConditions(top = A * randn())
 
 heaviside(x) = ifelse(x<0, zero(x), one(x))
 
