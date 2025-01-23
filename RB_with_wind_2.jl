@@ -79,7 +79,7 @@ const Pr = ν/κ
 closure = ScalarDiffusivity()
 
 sim_length = 10days
-Δt = 20seconds
+Δt = 30seconds
 
 const ρₒ = 1026.0 # kg m⁻³, average density at the surface of the world ocean
 const u₁₀ = 10    # m s⁻¹, average wind velocity 10 meters above the ocean
@@ -99,7 +99,7 @@ const H = grid.Lz
 sponge_one = minimum(Oceananigans.Grids.znodes(grid, Face()))
 sponge_zero = sponge_one + grid.Lz/10
 =#
-function bottom_mask_func(x,z)
+function bottom_mask_func(z)
     sponge_one = -H/4
     sponge_zero = sponge_one + H/10
     return heaviside(-(z-sponge_zero)) * 200*(z-sponge_zero)^2 / (sponge_one-sponge_zero)^2
@@ -139,7 +139,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 simulation = Simulation(model, Δt=Δt, stop_time = sim_length)
 
-wizard = TimeStepWizard(cfl=1.0, max_Δt=1minute)
+wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
 
 # Print a progress message
