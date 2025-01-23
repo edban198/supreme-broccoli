@@ -92,9 +92,9 @@ const τx = ρₐ / ρₒ * cᴰ * u₁₀ * abs(u₁₀) # m² s⁻²
 #u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx/5))
 
 const A = 1e-4
-random_forcing = A * CUDA.randn(grid.size[1], grid.size[2])
 
 # Apply random forcing to boundary condition
+random_forcing = A * CUDA.randn(size(grid)[1], size(grid)[2])
 u_bcs = FieldBoundaryConditions(top=ValueBoundaryCondition(random_forcing))
 
 heaviside(x) = ifelse(x<0, zero(x), one(x))
@@ -239,6 +239,6 @@ Label(fig[1, 1:2], title, fontsize = 24, tellwidth=true)
 #record movie
 frames = 1:length(times)
 @info "Making an animation..."
-record(fig, filename * ".mp4", frames, framerate=8) do i
+CairoMakie.record(fig, filename * ".mp4", frames, framerate=8) do i
     n[] = i
 end
