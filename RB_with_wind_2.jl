@@ -102,14 +102,14 @@ sponge_zero = sponge_one + grid.Lz/10
 function bottom_mask_func(z)
     sponge_one = -H/4
     sponge_zero = sponge_one + H/10
-    return heaviside(-(z-sponge_zero)) * 200*(z-sponge_zero)^2 / (sponge_one-sponge_zero)^2
+    return heaviside(-(z-sponge_zero)) * 2*(z-sponge_zero)^2 / (sponge_one-sponge_zero)^2
 end
 
 function mask_tanh(z)
     return - (tanh((z+H/2)) - 1)
 end
 
-sponge = Relaxation(rate = 1/30minutes, mask = mask_tanh, target=0)
+sponge = Relaxation(rate = 1/30minutes, mask = bottom_mask_func, target=0)
 
 model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
