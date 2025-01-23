@@ -109,7 +109,7 @@ function mask_tanh(z)
     return -10 * (tanh((z+H/2)) - 1)
 end
 
-sponge = Relaxation(rate = 1/30minutes, mask = bottom_mask_func, target=0)
+sponge = Relaxation(rate = 1/30minutes, mask = mask_tanh, target=0)
 
 model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
