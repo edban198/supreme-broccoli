@@ -93,10 +93,13 @@ const τx = ρₐ / ρₒ * cᴰ * u₁₀ * abs(u₁₀) # m² s⁻²
 
 const A = 1e-2
 
-random_forcing = A * abs(randn(CUDA.RNG()))
+# Define a random forcing function for the GPU
+function random_forcing_func(i, j, grid, clock, fields, params)
+    return A * abs(randn())
+end
 
-# Apply the random forcing function as the top boundary condition
-u_bcs = FieldBoundaryConditions(top=FluxBoundaryCondition(random_forcing))
+# Apply random forcing to the top boundary condition
+u_bcs = FieldBoundaryConditions(top=BoundaryCondition(random_forcing_func))
 
 heaviside(x) = ifelse(x<0, zero(x), one(x))
 
