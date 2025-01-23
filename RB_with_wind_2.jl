@@ -94,7 +94,7 @@ const τx = ρₐ / ρₒ * cᴰ * u₁₀ * abs(u₁₀) # m² s⁻²
 const A = 1e-4
 
 # Apply random forcing to boundary condition
-random_forcing = A * CUDA.randn(size(grid)[1], size(grid)[2])
+random_forcing = A * abs.(CUDA.randn(size(grid)[1], size(grid)[2]))
 u_bcs = FieldBoundaryConditions(top=ValueBoundaryCondition(random_forcing))
 
 heaviside(x) = ifelse(x<0, zero(x), one(x))
