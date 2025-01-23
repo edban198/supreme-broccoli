@@ -90,8 +90,10 @@ const τx = ρₐ / ρₒ * cᴰ * u₁₀ * abs(u₁₀) # m² s⁻²
 
 #u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx/5))
 
-const A = 1e-4 #Amplitude of random forcing
-u_bcs = FieldBoundaryConditions(top = A * randn())
+random_forcing = A * CUDA.randn(grid.size[1], grid.size[2])
+
+# Apply random forcing to boundary condition
+u_bcs = FieldBoundaryConditions(top=ValueBoundaryCondition(random_forcing))
 
 heaviside(x) = ifelse(x<0, zero(x), one(x))
 
