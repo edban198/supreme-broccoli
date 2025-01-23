@@ -51,17 +51,6 @@ gravitational_acceleration = 9.81 # m s⁻²
 teos10 = TEOS10EquationOfState()
 buoyancy = SeawaterBuoyancy(equation_of_state=teos10)
 
-const Δ = 1e-3
-const Γ = 1e-6
-#RB1
-#T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(20), bottom = ValueBoundaryCondition(20+Δ))
-#RB2
-#T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Γ), bottom = FluxBoundaryCondition(Γ))
-#RB3
-#T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(20), bottom = FluxBoundaryCondition(Γ))
-#const g = buoyancy.gravitational_acceleration
-#const α = buoyancy.equation_of_state.thermal_expansion
-
 #=
 const ν = 1e-3
 const κ = 1e-6
@@ -76,8 +65,7 @@ const Pr = ν/κ
 #const ν = sqrt(g * α * Δ * Lz^3 / (Pr * Ra))
 #const κ = sqrt(g * α * Δ * Lz^3 * Pr / Ra)
 
-#closure = ScalarDiffusivity(ν=1e-6, κ=1.4e-7)
-closure = ScalarDiffusivity()
+closure = ScalarDiffusivity() #ν=1e-6, κ=1.4e-7
 
 sim_length = 10days
 Δt = 30seconds
@@ -99,15 +87,12 @@ function random_forcing_func(i, j, grid, clock, fields, params)
 end
 
 # Apply random forcing to the top boundary condition
-u_bcs = FieldBoundaryConditions(top=BoundaryCondition(random_forcing_func))
+u_bcs = FieldBoundaryConditions(top=FluxBoundaryCondition(random_forcing_func))
 
 heaviside(x) = ifelse(x<0, zero(x), one(x))
 
 const H = grid.Lz
-#=
-sponge_one = minimum(Oceananigans.Grids.znodes(grid, Face()))
-sponge_zero = sponge_one + grid.Lz/10
-=#
+
 function bottom_mask_func(z)
     sponge_one = -H/4
     sponge_zero = sponge_one + H/10
