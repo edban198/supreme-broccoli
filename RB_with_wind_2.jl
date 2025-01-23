@@ -3,6 +3,7 @@
 #pkg"add Oceananigans, CairoMakie"
 
 using Printf
+using CUDA
 using CairoMakie
 using LaTeXStrings
 using Statistics
