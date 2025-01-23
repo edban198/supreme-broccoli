@@ -14,7 +14,7 @@ sponge_zero = sponge_one + H / 10
 
 # Bottom mask function
 def bottom_mask_func(z):
-    return heaviside(-(z - sponge_zero)) * 200 * ((z - sponge_zero) ** 2) / ((sponge_one - sponge_zero) ** 2)
+    return heaviside(-(z - sponge_zero)) * ((z - sponge_zero) ** 2) / ((sponge_one - sponge_zero) ** 2)
 
 # Generate z-values for plotting
 z_values = np.linspace(-H, 0, 500)  # From -H to 0 with 500 points
@@ -32,10 +32,10 @@ plt.legend()
 plt.grid()
 
 # Save the plot as an image
-#plt.savefig("OUTPUTS/bottom_mask_function_1.png", dpi=300, bbox_inches='tight')
-#plt.show()
+plt.savefig("OUTPUTS/bottom_mask_function_1.png", dpi=300, bbox_inches='tight')
+plt.show()
 
-#print("Plot saved as 'OUTPUTS/bottom_mask_function_1.png'")
+print("Plot saved as 'OUTPUTS/bottom_mask_function_1.png'")
 
 z_sponge = sponge_one
 width_sponge = 1
