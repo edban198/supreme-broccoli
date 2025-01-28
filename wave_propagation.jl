@@ -22,7 +22,7 @@ const Nz = 196          # number of points in the vertical direction
 const Lx = 5kilometers     # (m) domain horizontal extents
 const Lz = 1000meters          # (m) domain depth
 
-grid = RectilinearGrid(GPU(); size = (Nx, Nz),
+grid = RectilinearGrid(CPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (-Lz,0),
                        topology = (Periodic, Flat, Bounded)
@@ -34,16 +34,9 @@ function step_func(z)
     return 0.5 * (1 + tanh(a * (z - z₀)))
 end
 
-const C = 1
-const k_z =
-const f = 1e-4
-
-U(x, z, t) = C * sin(k_z*z + f*t) * step_func(z)
-
-V(x, z, t) = C * cos(k_z*z + f*t) * step_func(z)
-
 no_slip_bc = FieldBoundaryConditions(bottom = ValueBoundaryCondition(0.0))
 
+const C = 1e-5
 const a = 10
 const z₀ = 200
 const k_z = 4 * (2π / Lz)
