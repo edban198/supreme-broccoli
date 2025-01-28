@@ -16,13 +16,13 @@ filename = "OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 1024     # number of points in each of horizontal directions
-const Nz = 256          # number of points in the vertical direction
+const Nx = 512     # number of points in each of horizontal directions
+const Nz = 196          # number of points in the vertical direction
 
 const Lx = 5kilometers     # (m) domain horizontal extents
 const Lz = 1000meters          # (m) domain depth
 
-grid = RectilinearGrid(GPU(); size = (Nx, Nz),
+grid = RectilinearGrid(CPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (-Lz,0),
                        topology = (Periodic, Flat, Bounded)
@@ -30,20 +30,43 @@ grid = RectilinearGrid(GPU(); size = (Nx, Nz),
 
 closure = ScalarDiffusivity()
 
+function step_func(z)
+    return 0.5 * (1 + tanh(a * (z - z₀)))
+end
+
+const C = 1
+const k_z =
+const f = 1e-4
+
+U(x, z, t) = C * sin(k_z*z + f*t) * step_func(z)
+
+V(x, z, t) = C * cos(k_z*z + f*t) * step_func(z)
+
+no_slip_bc = FieldBoundaryConditions(bottom = ValueBoundaryCondition(0.0))
+
 model = NonhydrostaticModel(; grid,
-                            advection = UpwindBiased(order=5),
-                            closure = closure
+                            closure = closure,
+                            boundary_conditions = (u=no_slip_bc,)
 )
 
 # Random noise
 Ξ(z) = randn()
 
 # Velocity initial condition:
-uᵢ(x, z) = 1e-6 * Ξ(z)
+const a = 10
+const z₀ = 200
+const k_z = 4 * (2π / Lz)
+step_func(z) = 0.5 * tanh(a*z + z₀) + 0.5
+uᵢ(x,z) = C * sin(k_z * z) * step_func(z)
 
-simulation = Simulation(model, Δt=Δt, stop_time = sim_length)
+Ξ(z) = randn()
+wᵢ(x,z) = 1e-6 * Ξ(z)
 
-Δt = 30seconds
+set!(model, u=uᵢ, w=wᵢ)
+
+simulation = Simulation(model, Δt=30seconds, stop_time = 10days)
+
+const Δt = 30seconds
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
