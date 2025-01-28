@@ -51,13 +51,12 @@ const Pr = ν/κ
 
 closure = ScalarDiffusivity() #ν=1e-6, κ=1.4e-7
 
-const A = 1e-2
+const amplitude = 1e-5
 current_wind_stress_u = Ref(0.0)
 
 # Function to update wind stress with new random values each timestep
 function update_wind_stress!(sim)
-    current_wind_stress_u[] = amplitude * randn()  # Normal distribution
-    current_wind_stress_v[] = amplitude * randn()
+    current_wind_stress_u[] = amplitude * abs(randn())  # Normal distribution
     return nothing
 end
 
@@ -85,7 +84,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
                             tracers = (:T,:S),
                             closure = closure,
                             boundary_conditions = (
-        u = (top = FluxBoundaryCondition((x, y, t) -> current_wind_stress_u[]),),
+        u = (top = FluxBoundaryCondition((x, z, t) -> current_wind_stress[]),),
     )
 )
 
