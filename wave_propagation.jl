@@ -44,25 +44,26 @@ V(x, z, t) = C * cos(k_z*z + f*t) * step_func(z)
 
 no_slip_bc = FieldBoundaryConditions(bottom = ValueBoundaryCondition(0.0))
 
-model = NonhydrostaticModel(; grid,
-                            closure = closure,
-                            boundary_conditions = (u=no_slip_bc,)
-)
-
-# Random noise
-Ξ(z) = randn()
-
-# Velocity initial condition:
 const a = 10
 const z₀ = 200
 const k_z = 4 * (2π / Lz)
+const f = 1e-4
 step_func(z) = 0.5 * tanh(a*z + z₀) + 0.5
-uᵢ(x,z) = C * sin(k_z * z) * step_func(z)
+u_forcing(x,z,t) = C * sin(k_z * z + f*t) * step_func(z)
+w_forcing(x,z,t) = C * cos(k_z * z + f*t) * step_func(z)
 
-Ξ(z) = randn()
-wᵢ(x,z) = 1e-6 * Ξ(z)
+model = NonhydrostaticModel(; grid,
+                            closure = closure,
+                            boundary_conditions = (u=no_slip_bc,),
+                            forcing = (u=u_forcing, w=w_forcing)
+)
 
-set!(model, u=uᵢ)
+# Velocity initial condition:
+Ξ() = randn()
+uᵢ(x,z) = Ξ()
+wᵢ(x,z) = Ξ()
+
+set!(model, u=uᵢ, w=wᵢ)
 
 simulation = Simulation(model, Δt=30seconds, stop_time = 30days)
 
