@@ -16,8 +16,8 @@ filename = "OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 64     # number of points in each of horizontal directions
-const Nz = 32          # number of points in the vertical direction
+const Nx = 256     # number of points in each of horizontal directions
+const Nz = 128          # number of points in the vertical direction
 
 const Lx = 5kilometers     # (m) domain horizontal extents
 const Lz = 1000meters          # (m) domain depth
@@ -25,7 +25,7 @@ const Lz = 1000meters          # (m) domain depth
 const refinement = 1.2 # controls spacing near surface (higher means finer spaced)
 const stretching = 12  # controls rate of stretching at bottom
 
-grid = RectilinearGrid(CPU(); size = (Nx, Nz),
+grid = RectilinearGrid(GPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (-Lz,0),
                        topology = (Periodic, Flat, Bounded)
