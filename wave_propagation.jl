@@ -22,7 +22,7 @@ const Nz = 196          # number of points in the vertical direction
 const Lx = 5kilometers     # (m) domain horizontal extents
 const Lz = 1000meters          # (m) domain depth
 
-grid = RectilinearGrid(CPU(); size = (Nx, Nz),
+grid = RectilinearGrid(GPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (-Lz,0),
                        topology = (Periodic, Flat, Bounded)
