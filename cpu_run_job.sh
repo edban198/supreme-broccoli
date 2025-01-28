@@ -10,7 +10,7 @@
 #SBATCH --qos=short
 #SBATCH -t 01:00:00
 
-#SBATCH --job-name=RB_cpu_simulation
+#SBATCH --job-name=wave_propagation_simulation
 
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user sfbj55@durham.ac.uk

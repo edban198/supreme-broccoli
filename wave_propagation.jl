@@ -12,7 +12,7 @@ using Oceananigans
 using Oceananigans.Units: seconds, minute, minutes, hour, hours, day, days
 using Oceananigans.Units: kilometers, kilometer, meter, meters
 
-filename = "OUTPUTS/RB_gpu_simulation"
+filename = "OUTPUTS/RB_cpu_simulation"
 
 @info"Setting up model"
 
@@ -62,11 +62,9 @@ uᵢ(x,z) = C * sin(k_z * z) * step_func(z)
 Ξ(z) = randn()
 wᵢ(x,z) = 1e-6 * Ξ(z)
 
-set!(model, u=uᵢ, w=wᵢ)
+set!(model, u=uᵢ)
 
-simulation = Simulation(model, Δt=30seconds, stop_time = 10days)
-
-const Δt = 30seconds
+simulation = Simulation(model, Δt=30seconds, stop_time = 30days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
@@ -88,7 +86,7 @@ outputs = (s = sqrt(model.velocities.u^2 + model.velocities.w^2),
            w = model.velocities.w
 )
 
-const data_interval = 4minutes
+const data_interval = 6minutes
 
 simulation.output_writers[:simple_outputs] =
     JLD2OutputWriter(model, outputs,
