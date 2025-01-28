@@ -18,4 +18,4 @@
 # Run the program
 cd
 
-./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/RB_with_wind_2.jl
+./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/wave_propagation.jl
