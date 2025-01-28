@@ -8,7 +8,7 @@
 #SBATCH -c 8
 #SBATCH -p cpu
 #SBATCH --qos=short
-#SBATCH -t 01:00:00
+#SBATCH -t 02:30:00
 
 #SBATCH --job-name=wave_propagation_simulation
 
