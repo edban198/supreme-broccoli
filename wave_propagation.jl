@@ -58,7 +58,7 @@ wᵢ(x,z) = Ξ()
 
 set!(model, u=uᵢ, w=wᵢ)
 
-simulation = Simulation(model, Δt=10seconds, stop_time = 30days)
+simulation = Simulation(model, Δt=10seconds, stop_time = 10days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
