@@ -10,7 +10,7 @@
 #SBATCH --gres=gpu:pascal:1
 #SBATCH -p ug-gpu-small
 #SBATCH --qos=short
-#SBATCH -t 01-00:00:00
+#SBATCH -t 08:00:00
 
 #SBATCH --job-name=RB_gpu_simulation
 
