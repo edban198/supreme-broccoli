@@ -36,8 +36,8 @@ end
 
 no_slip_bc = FieldBoundaryConditions(bottom = ValueBoundaryCondition(0.0))
 
-const C = 1e-5
-const a = 10
+const C = 1e-6
+const a = 1
 const z₀ = 200
 const k_z = 4 * (2π / Lz)
 const f = 1e-4
@@ -58,7 +58,7 @@ wᵢ(x,z) = Ξ()
 
 set!(model, u=uᵢ, w=wᵢ)
 
-simulation = Simulation(model, Δt=30seconds, stop_time = 30days)
+simulation = Simulation(model, Δt=10seconds, stop_time = 30days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
