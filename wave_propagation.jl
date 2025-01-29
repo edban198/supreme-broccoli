@@ -12,7 +12,7 @@ using Oceananigans
 using Oceananigans.Units: seconds, minute, minutes, hour, hours, day, days
 using Oceananigans.Units: kilometers, kilometer, meter, meters
 
-filename = "OUTPUTS/RB_cpu_simulation"
+filename = "OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
@@ -22,43 +22,47 @@ const Nz = 196          # number of points in the vertical direction
 const Lx = 5kilometers     # (m) domain horizontal extents
 const Lz = 1000meters          # (m) domain depth
 
-grid = RectilinearGrid(CPU(); size = (Nx, Nz),
+grid = RectilinearGrid(GPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (-Lz,0),
                        topology = (Periodic, Flat, Bounded)
 )
 
 closure = ScalarDiffusivity()
+#buoyancy = SeawaterBuoyancy(equation_of_state = LinearEquationOfState())
 
-function step_func(z)
-    return 0.5 * (1 + tanh(a * (z - z₀)))
-end
+# Revised parameters for wave generation at the surface
+const C = 1e-4    # Wave amplitude [m/s]
+const a = 0.01    # Inverse width of surface forcing layer [1/m]
+const z₀ = -50    # Depth of forcing center [m] (50m below surface)
+const k_z = 2π/50 # Vertical wavenumber (50m wavelength)
+const ω = 1e-3    # Angular frequency [rad/s]
 
-no_slip_bc = FieldBoundaryConditions(bottom = ValueBoundaryCondition(0.0))
+# Surface-localized forcing function (1 at surface, 0 at depth)
+step_func(z) = 0.5 * (1 + tanh(a * (z - z₀)))
 
-const C = 1e-4
-const a = 1
-const z₀ = 200
-const k_z = 4 * (2π / Lz)
-const f = 1e-4
-step_func(z) = 0.5 * tanh(a*z + z₀) + 0.5
-u_forcing(x,z,t) = C * sin(k_z * z + f*t) * step_func(z)
-w_forcing(x,z,t) = C * cos(k_z * z + f*t) * step_func(z)
+# Divergence-free forcing for incompressible flow
+u_forcing(x, z, t) =  C * cos(k_z * z - ω * t) * step_func(z)
+w_forcing(x, z, t) = -C * sin(k_z * z - ω * t) * step_func(z) * k_z/(2π/Lx)  # Adjusted for horizontal wavenumber
+
+# Free-slip at bottom, wave-permissive at top
+u_bcs = FieldBoundaryConditions(
+    top = FluxBoundaryCondition(0.0),    # Allow vertical velocity
+    bottom = ValueBoundaryCondition(0.0) # No-slip at bottom
+)
 
 model = NonhydrostaticModel(; grid,
-                            closure = closure,
-                            boundary_conditions = (u=no_slip_bc,),
-                            forcing = (u=u_forcing, w=w_forcing)
+    closure = closure,
+    boundary_conditions = (u=u_bcs,),
+    forcing = (u=u_forcing, w=w_forcing)
 )
 
 # Velocity initial condition:
-Ξ() = randn()
-uᵢ(x,z) = Ξ()
-wᵢ(x,z) = Ξ()
+# Start from rest instead of random noise
+set!(model, u=0, w=0)
 
-set!(model, u=uᵢ, w=wᵢ)
-
-simulation = Simulation(model, Δt=10seconds, stop_time = 10days)
+# Match time-stepping to wave frequency
+simulation = Simulation(model, Δt=2π/(10ω), stop_time=10days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
