@@ -34,16 +34,17 @@ closure = ScalarDiffusivity()
 # Revised parameters for wave generation at the surface
 const C = 1e-4    # Wave amplitude [m/s]
 const a = 0.01    # Inverse width of surface forcing layer [1/m]
-const z₀ = -50    # Depth of forcing center [m] (50m below surface)
-const k_z = 2π/50 # Vertical wavenumber (50m wavelength)
+const z₀ = -100    # Depth of forcing center [m] (50m below surface)
+const λ = 100
+const k_z = 2π/λ # Vertical wavenumber (50m wavelength)
 const ω = 1e-3    # Angular frequency [rad/s]
 
 # Surface-localized forcing function (1 at surface, 0 at depth)
 step_func(z) = 0.5 * (1 + tanh(a * (z - z₀)))
 
 # Divergence-free forcing for incompressible flow
-u_forcing(x, z, t) =  C * cos(k_z * z - ω * t) * step_func(z)
-w_forcing(x, z, t) = -C * sin(k_z * z - ω * t) * step_func(z) * k_z/(2π/Lx)  # Adjusted for horizontal wavenumber
+u_forcing(x, z, t) =  C * cos(k_z * z + ω * t) * step_func(z)
+w_forcing(x, z, t) = -C * sin(k_z * z + ω * t) * step_func(z)
 
 # Free-slip at bottom, wave-permissive at top
 u_bcs = FieldBoundaryConditions(
