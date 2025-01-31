@@ -48,7 +48,7 @@ const Pr = ν/κ
 
 closure = ScalarDiffusivity() #ν=1e-6, κ=1.4e-7
 
-const amplitude = 1e-5
+const amplitude = 1e-3
 current_wind_stress_u = Ref(0.0)
 
 # Function to update wind stress with new random values each timestep
