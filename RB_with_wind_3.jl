@@ -46,7 +46,7 @@ const Pr = ν/κ
 #const ν = sqrt(g * α * Δ * Lz^3 / (Pr * Ra))
 #const κ = sqrt(g * α * Δ * Lz^3 * Pr / Ra)
 
-closure = ScalarDiffusivity() #ν=1e-6, κ=1.4e-7
+closure = ScalarDiffusivity(ν=1e-6, κ=1.4e-7)
 
 const amplitude = 1e-3
 current_wind_stress_u = Ref(0.0)
