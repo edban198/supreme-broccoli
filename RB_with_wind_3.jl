@@ -126,11 +126,6 @@ add_callback!(simulation, progress_message, IterationInterval(100))
 
 # Output
 
-@info"Running the simulation..."
-run!(simulation)
-
-simulation.stop_time = 20days
-
 u,v,w = model.velocities
 
 outputs = (s = sqrt(model.velocities.u^2 + model.velocities.w^2),
@@ -147,7 +142,7 @@ simulation.output_writers[:simple_outputs] =
                      overwrite_existing = true
 )
 
-@info "restarting sim"
+@info"Running the simulation..."
 run!(simulation)
 
 @info"Plotting animation"
