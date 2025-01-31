@@ -5,10 +5,10 @@
 #cores in each node.
 # X,Y are integers. Refer to table for various combinations
 #SBATCH -N 1
-#SBATCH -c 8
+#SBATCH -c 4
 #SBATCH -p cpu
 #SBATCH --qos=short
-#SBATCH -t 08:00:00
+#SBATCH -t 02:00:00
 
 #SBATCH --job-name=wave_propagation_simulation
 
@@ -18,4 +18,4 @@
 # Run the program
 cd
 
-./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/wave_propagation.jl
+./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/RB_with_wind_3.jl

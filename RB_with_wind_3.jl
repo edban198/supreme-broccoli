@@ -12,20 +12,17 @@ using Oceananigans
 using Oceananigans.Units: seconds, minute, minutes, hour, hours, day, days
 using Oceananigans.Units: kilometers, kilometer, meter, meters
 
-filename = "OUTPUTS/RB_gpu_simulation"
+filename = "OUTPUTS/cpu_wind_simulation"
 
 @info"Setting up model"
 
 const Nx = 256     # number of points in each of horizontal directions
-const Nz = 128          # number of points in the vertical direction
+const Nz = 196          # number of points in the vertical direction
 
 const Lx = 5kilometers     # (m) domain horizontal extents
 const Lz = 1000meters          # (m) domain depth
 
-const refinement = 1.2 # controls spacing near surface (higher means finer spaced)
-const stretching = 12  # controls rate of stretching at bottom
-
-grid = RectilinearGrid(GPU(); size = (Nx, Nz),
+grid = RectilinearGrid(CPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (-Lz,0),
                        topology = (Periodic, Flat, Bounded)
@@ -33,7 +30,7 @@ grid = RectilinearGrid(GPU(); size = (Nx, Nz),
 
 # SeawaterBuoyancy:
 teos10 = TEOS10EquationOfState()
-buoyancy = SeawaterBuoyancy(equation_of_state=teos10)
+buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState())
 
 #=
 const ν = 1e-3
@@ -62,6 +59,11 @@ end
 
 # Create callback that updates wind stress before each timestep
 wind_stress_callback = Callback(update_wind_stress!, callsite = :timestep)
+
+u_bcs = FieldBoundaryConditions(
+    top = FluxBoundaryCondition(current_wind_stress_u),    # Allow vertical velocity
+    bottom = ValueBoundaryCondition(0.0) # No-slip at bottom
+)
 #=
 heaviside(x) = ifelse(x<0, zero(x), one(x))
 
@@ -83,9 +85,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:T,:S),
                             closure = closure,
-                            boundary_conditions = (
-        u = (top = FluxBoundaryCondition((x, z, t) -> current_wind_stress[]),),
-    )
+                            boundary_conditions = (u=u_bcs,)
 )
 
 # Initial conditions
@@ -108,7 +108,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ, S=Sᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=30seconds, stop_time = 10days)
+simulation = Simulation(model, Δt=30seconds, stop_time = 30days)
 
 simulation.callbacks[:wind_stress] = wind_stress_callback
 
