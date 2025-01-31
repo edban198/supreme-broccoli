@@ -108,7 +108,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ, S=Sᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=30seconds, stop_time = 30days)
+simulation = Simulation(model, Δt=30seconds, stop_time = 20days)
 
 simulation.callbacks[:wind_stress] = wind_stress_callback
 
