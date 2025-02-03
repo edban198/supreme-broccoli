@@ -48,22 +48,13 @@ const Pr = ν/κ
 
 closure = ScalarDiffusivity(ν=1e-6, κ=1.4e-7)
 
-const amplitude = 1e-3
-current_wind_stress_u = Ref(0.0)
+const u₁₀ = 10    # m s⁻¹, average wind velocity 10 meters above the ocean
+const cᴰ = 2.58e-3 # dimensionless drag coefficient
+const ρₐ = 1.225  # kg m⁻³, average density of air at sea-level
 
-# Function to update wind stress with new random values each timestep
-function update_wind_stress!(sim)
-    current_wind_stress_u[] = amplitude * abs(randn())  # Normal distribution
-    return nothing
-end
+τx = - ρₐ / ρₒ * cᴰ * u₁₀ * abs(u₁₀) # m² s⁻²
 
-# Create callback that updates wind stress before each timestep
-wind_stress_callback = Callback(update_wind_stress!, callsite = :timestep)
-
-u_bcs = FieldBoundaryConditions(
-    top = FluxBoundaryCondition((x, t) -> current_wind_stress_u[]),  # Dynamic function
-    bottom = ValueBoundaryCondition(0.0)
-)
+u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
 #=
 heaviside(x) = ifelse(x<0, zero(x), one(x))
 
