@@ -61,8 +61,8 @@ end
 wind_stress_callback = Callback(update_wind_stress!, callsite = :timestep)
 
 u_bcs = FieldBoundaryConditions(
-    top = FluxBoundaryCondition(current_wind_stress_u[]),    # Allow vertical velocity
-    bottom = ValueBoundaryCondition(0.0) # No-slip at bottom
+    top = FluxBoundaryCondition((x, y, t) -> current_wind_stress_u[]),  # Dynamic function
+    bottom = ValueBoundaryCondition(0.0)
 )
 #=
 heaviside(x) = ifelse(x<0, zero(x), one(x))
