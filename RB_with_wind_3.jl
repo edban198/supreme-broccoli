@@ -102,8 +102,6 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ, S=Sᵢ)
 
 simulation = Simulation(model, Δt=30seconds, stop_time = 20days)
 
-simulation.callbacks[:wind_stress] = wind_stress_callback
-
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
 
