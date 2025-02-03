@@ -9,7 +9,7 @@ using Statistics
 using Oceananigans
 using Oceananigans.Units: seconds, minute, minutes, hour, hours, day, days
 
-filename = "./OUTPUTS\\RB_gpu_simulation"
+filename = "./OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
@@ -19,29 +19,14 @@ const Nz = 256          # number of points in the vertical direction
 const Lx = 128     # (m) domain horizontal extents
 const Lz = 32          # (m) domain depth
 
-const refinement = 1.2 # controls spacing near surface (higher means finer spaced)
-const stretching = 12  # controls rate of stretching at bottom
-
-# Normalized height ranging from 0 to 1
-h(k) = (k - 1) / Nz
-
-# Linear near-surface generator
-ζ₀(k) = 1 + (h(k) - 1) / refinement
-
-# Bottom-intensified stretching function
-Σ(k) = (1 - exp(-stretching * h(k))) / (1 - exp(-stretching))
-
-# Generating function
-z_faces(k) = Lz * (ζ₀(k) * Σ(k) - 1)
-
 grid = RectilinearGrid(GPU(); size = (Nx, Nz),
                        x = (0,Lx),
-                       z = z_faces,
+                       z = (-Lz,0),
                        topology = (Periodic, Flat, Bounded)
 )
 
 # Buoyancy that depends on temperature:
-buoyancy = SeawaterBuoyancy(constant_salinity = 0)
+buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(thermal_expansion = 2e-4, haline_contraction = 8e-4))
 
 const Δ = 1e-3
 const Γ = 1e-6
@@ -69,7 +54,7 @@ const Pr = 1
 const ν = sqrt(g * α * Δ * Lz^3 / (Pr * Ra))
 const κ = sqrt(g * α * Δ * Lz^3 * Pr / Ra)
 
-closure = ScalarDiffusivity(ν=ν,κ=κ)
+closure = ScalarDiffusivity()
 
 model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
@@ -95,7 +80,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=20seconds, stop_time = 15days)
+simulation = Simulation(model, Δt=20seconds, stop_time = 10days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
@@ -108,6 +93,9 @@ progress_message(sim) = @printf("Iteration: %04d, time: %s, Δt: %s, max(|u|) = 
 )
 
 add_callback!(simulation, progress_message, IterationInterval(100))
+
+@info"Running the simulation..."
+run!(simulation)
 
 # Output
 
@@ -128,7 +116,8 @@ simulation.output_writers[:simple_outputs] =
                      overwrite_existing = true
 )
 
-@info"Running the simulation..."
+@info"restarting the sim"
+simulation.stop_time = 25days
 run!(simulation)
 
 @info"Plotting animation"
