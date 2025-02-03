@@ -48,6 +48,7 @@ const Pr = ν/κ
 
 closure = ScalarDiffusivity(ν=1e-6, κ=1.4e-7)
 
+const ρₒ = 1026.0 # kg m⁻³, average density at the surface of the world ocean
 const u₁₀ = 10    # m s⁻¹, average wind velocity 10 meters above the ocean
 const cᴰ = 2.58e-3 # dimensionless drag coefficient
 const ρₐ = 1.225  # kg m⁻³, average density of air at sea-level
