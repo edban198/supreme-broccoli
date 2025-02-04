@@ -16,11 +16,11 @@ filename = "OUTPUTS/cpu_wind_simulation"
 
 @info"Setting up model"
 
-const Nx = 256     # number of points in each of horizontal directions
-const Nz = 196          # number of points in the vertical direction
+const Nx = 1024     # number of points in each of horizontal directions
+const Nz = 256          # number of points in the vertical direction
 
-const Lx = 50kilometers     # (m) domain horizontal extents
-const Lz = 1000meters          # (m) domain depth
+const Lx = 20kilometers     # (m) domain horizontal extents
+const Lz = 2000meters          # (m) domain depth
 
 grid = RectilinearGrid(CPU(); size = (Nx, Nz),
                        x = (0,Lx),
@@ -55,7 +55,11 @@ const ρₐ = 1.225  # kg m⁻³, average density of air at sea-level
 
 τx = - ρₐ / ρₒ * cᴰ * u₁₀ * abs(u₁₀) # m² s⁻²
 
-u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
+# Define a reference to hold the current flux value
+const current_flux = Ref(τx)
+
+# Set the initial boundary condition using a function that reads from current_flux
+u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(current_flux[]))
 #=
 heaviside(x) = ifelse(x<0, zero(x), one(x))
 
@@ -77,7 +81,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:T,:S),
                             closure = closure,
-                            boundary_conditions = (u=u_bcs,)
+                            boundary_conditions = (;u=u_bcs)
 )
 
 # Initial conditions
@@ -100,7 +104,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ, S=Sᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=30seconds, stop_time = 20days)
+simulation = Simulation(model, Δt=30seconds, stop_time = 5days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
@@ -114,13 +118,21 @@ progress_message(sim) = @printf("Iteration: %04d, time: %s, Δt: %s, max(|u|) = 
 
 add_callback!(simulation, progress_message, IterationInterval(100))
 
+# Modify the bc_update callback to update the current_flux value
+function bc_update(sim)
+    new_flux = - ρₐ / ρₒ * cᴰ * u₁₀ * abs(u₁₀) * abs(randn())
+    current_flux[] = new_flux
+end
+
+add_callback!(simulation, bc_update, IterationInterval(10))
 # Output
 
 u,v,w = model.velocities
 
 outputs = (s = sqrt(model.velocities.u^2 + model.velocities.w^2),
            ω = ∂z(model.velocities.u) - ∂x(model.velocities.w),
-           w = model.velocities.w
+           w = model.velocities.w,
+           u = model.velocities.u
 )
 
 const data_interval = 4minutes
@@ -152,22 +164,26 @@ axis_kwargs = (xlabel = "x (km)", ylabel = "z (m)"
 ax_w = Axis(fig[2,1]; title = L"Veritcal Velocity, $w$", axis_kwargs...)
 ax_s = Axis(fig[3,1]; title = L"Speed, $s = \sqrt{u^2+w^2}$", axis_kwargs...)
 ax_ω = Axis(fig[4,1]; title = L"Vorticity, $\omega = \frac{\partial u}{\partial z} - \frac{\partial w}{\partial x}$", axis_kwargs...)
+ax_u = Axis(fig[5,1]; title = L"Horizontal Velocity, $u$", axis_kwargs...)
 
 n = Observable(1)
 
 w = @lift w_timeseries[$n]
 s = @lift s_timeseries[$n]
 ω = @lift ω_timeseries[$n]
+u = @lift ω_timeseries[$n]
 
 wlims = (minimum(interior(w_timeseries)), maximum(interior(w_timeseries)))
 slims = (minimum(interior(s_timeseries)), maximum(interior(s_timeseries)))
 ωlims = (minimum(interior(ω_timeseries)), maximum(interior(ω_timeseries)))
+ulims = (minimum(interior(u_timeseries)), maximum(interior(u_timeseries)))
 
 @info wlims
 @info slims
 @info ωlims
+@info ulims
 
-# Set axis limits explicitly to match your domain
+# Set axis limits explicitly to match domain
 xlims!(ax_w, 0, Lx)
 ylims!(ax_w, -Lz, 0)
 
@@ -177,7 +193,10 @@ ylims!(ax_s, -Lz, 0)
 xlims!(ax_ω, 0, Lx)
 ylims!(ax_ω, -Lz, 0)
 
-hm_w = heatmap!(ax_w, w; colormap = :balance, colorrange = wlims)
+xlims!(ax_u, 0, Lx)
+ylims!(ax_u, -Lz, 0)
+
+hm_w = heatmap!(ax_w, w; colormap = :speed, colorrange = wlims)
 Colorbar(fig[2,2], hm_w)
 
 hm_s = heatmap!(ax_s, s; colormap = :speed, colorrange = slims)
@@ -185,6 +204,9 @@ Colorbar(fig[3,2], hm_s)
 
 hm_ω = heatmap!(ax_ω, ω; colormap = :balance, colorrange = ωlims)
 Colorbar(fig[4,2], hm_ω)
+
+hm_u = heatmap!(ax_u, u; colormap = :speed, colorrange = ulims)
+Colorbar(fig[5,2], hm_u)
 
 title = @lift "t = " * prettytime(times[$n])
 Label(fig[1, 1:2], title, fontsize = 24, tellwidth=true)
