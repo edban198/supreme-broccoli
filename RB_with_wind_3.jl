@@ -19,7 +19,7 @@ filename = "OUTPUTS/cpu_wind_simulation"
 const Nx = 256     # number of points in each of horizontal directions
 const Nz = 196          # number of points in the vertical direction
 
-const Lx = 5kilometers     # (m) domain horizontal extents
+const Lx = 50kilometers     # (m) domain horizontal extents
 const Lz = 1000meters          # (m) domain depth
 
 grid = RectilinearGrid(CPU(); size = (Nx, Nz),
