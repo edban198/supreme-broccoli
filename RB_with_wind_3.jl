@@ -171,7 +171,7 @@ n = Observable(1)
 w = @lift w_timeseries[$n]
 s = @lift s_timeseries[$n]
 ω = @lift ω_timeseries[$n]
-u = @lift ω_timeseries[$n]
+u = @lift u_timeseries[$n]
 
 wlims = (minimum(interior(w_timeseries)), maximum(interior(w_timeseries)))
 slims = (minimum(interior(s_timeseries)), maximum(interior(s_timeseries)))
