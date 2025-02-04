@@ -62,7 +62,7 @@ model = NonhydrostaticModel(; grid,
 set!(model, u=0, w=0)
 
 # Match time-stepping to wave frequency
-simulation = Simulation(model, Δt=2π/(10ω), stop_time=20days)
+simulation = Simulation(model, Δt=30seconds, stop_time=20days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))

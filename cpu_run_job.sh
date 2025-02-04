@@ -10,7 +10,7 @@
 #SBATCH --qos=short
 #SBATCH -t 1-00:00:00
 
-#SBATCH --job-name=wave_propagation_cpu_sim
+#SBATCH --job-name=white_noise_cpu_sim
 
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user sfbj55@durham.ac.uk
@@ -18,4 +18,4 @@
 # Run the program
 cd
 
-./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/wave_propagation.jl
+./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/RB_with_wind_3.jl

@@ -16,10 +16,10 @@ filename = "OUTPUTS/cpu_wind_simulation"
 
 @info"Setting up model"
 
-const Nx = 1024     # number of points in each of horizontal directions
+const Nx = 512     # number of points in each of horizontal directions
 const Nz = 256          # number of points in the vertical direction
 
-const Lx = 20kilometers     # (m) domain horizontal extents
+const Lx = 10kilometers     # (m) domain horizontal extents
 const Lz = 2000meters          # (m) domain depth
 
 grid = RectilinearGrid(CPU(); size = (Nx, Nz),
@@ -49,7 +49,7 @@ const Pr = ν/κ
 closure = ScalarDiffusivity(ν=1e-6, κ=1.4e-7)
 
 const ρₒ = 1026.0 # kg m⁻³, average density at the surface of the world ocean
-const u₁₀ = 10    # m s⁻¹, average wind velocity 10 meters above the ocean
+const u₁₀ = 5    # m s⁻¹, average wind velocity 10 meters above the ocean (orig 10)
 const cᴰ = 2.58e-3 # dimensionless drag coefficient
 const ρₐ = 1.225  # kg m⁻³, average density of air at sea-level
 
@@ -104,7 +104,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ, S=Sᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=30seconds, stop_time = 5days)
+simulation = Simulation(model, Δt=30seconds, stop_time = 10days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
