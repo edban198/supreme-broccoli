@@ -32,7 +32,7 @@ closure = ScalarDiffusivity()
 #buoyancy = SeawaterBuoyancy(equation_of_state = LinearEquationOfState())
 
 # Revised parameters for wave generation at the surface
-const C = 1e-4    # Wave amplitude [m/s]
+const C = 1e-5    # Wave amplitude [m/s]
 const a = 0.01    # Inverse width of surface forcing layer [1/m]
 const z₀ = -100    # Depth of forcing center [m] (50m below surface)
 const λ = 100
@@ -47,8 +47,7 @@ u_forcing(x, z, t) =  C * cos(k_z * z + ω * t) * step_func(z)
 w_forcing(x, z, t) = -C * sin(k_z * z + ω * t) * step_func(z)
 
 # Free-slip at bottom, wave-permissive at top
-u_bcs = FieldBoundaryConditions(
-    top = FluxBoundaryCondition(0.0),    # Allow vertical velocity
+u_bcs = FieldBoundaryConditions(   # Allow vertical velocity
     bottom = ValueBoundaryCondition(0.0) # No-slip at bottom
 )
 
@@ -85,7 +84,7 @@ outputs = (s = sqrt(model.velocities.u^2 + model.velocities.w^2),
            w = model.velocities.w
 )
 
-const data_interval = 6minutes
+const data_interval = 4minutes
 
 simulation.output_writers[:simple_outputs] =
     JLD2OutputWriter(model, outputs,
