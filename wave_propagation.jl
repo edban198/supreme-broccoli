@@ -12,7 +12,7 @@ using Oceananigans
 using Oceananigans.Units: seconds, minute, minutes, hour, hours, day, days
 using Oceananigans.Units: kilometers, kilometer, meter, meters
 
-filename = "OUTPUTS/RB_gpu_simulation"
+filename = "OUTPUTS/cpu_wave_propagation"
 
 @info"Setting up model"
 
@@ -22,7 +22,7 @@ const Nz = 196          # number of points in the vertical direction
 const Lx = 5kilometers     # (m) domain horizontal extents
 const Lz = 1000meters          # (m) domain depth
 
-grid = RectilinearGrid(GPU(); size = (Nx, Nz),
+grid = RectilinearGrid(CPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (-Lz,0),
                        topology = (Periodic, Flat, Bounded)
@@ -63,7 +63,7 @@ model = NonhydrostaticModel(; grid,
 set!(model, u=0, w=0)
 
 # Match time-stepping to wave frequency
-simulation = Simulation(model, Δt=2π/(10ω), stop_time=10days)
+simulation = Simulation(model, Δt=2π/(10ω), stop_time=20days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))

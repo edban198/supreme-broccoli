@@ -8,7 +8,7 @@
 #SBATCH -c 8
 #SBATCH -p cpu
 #SBATCH --qos=short
-#SBATCH -t 08:00:00
+#SBATCH -t 1-00:00:00
 
 #SBATCH --job-name=white_noise_wind
 
@@ -18,4 +18,4 @@
 # Run the program
 cd
 
-./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/RB_with_wind_3.jl
+./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/wave_propagation.jl
