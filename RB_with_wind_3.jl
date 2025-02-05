@@ -16,7 +16,7 @@ filename = "OUTPUTS/cpu_wind_simulation_small"
 
 @info"Setting up model"
 
-const Nx = 256     # number of points in each of horizontal directions
+const Nx = 512     # number of points in each of horizontal directions
 const Nz = 128          # number of points in the vertical direction
 
 const Lx = 10kilometers     # (m) domain horizontal extents
@@ -104,7 +104,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ, S=Sᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=30seconds, stop_time = 10days)
+simulation = Simulation(model, Δt=30seconds, stop_time = 20days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
