@@ -8,7 +8,7 @@
 #SBATCH -c 32
 #SBATCH -p cpu
 #SBATCH --qos=short
-#SBATCH -t 04:00:00
+#SBATCH -t 12:00:00
 
 #SBATCH --job-name=white_noise_cpu_sim
 

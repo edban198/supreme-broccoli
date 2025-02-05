@@ -12,12 +12,12 @@ using Oceananigans
 using Oceananigans.Units: seconds, minute, minutes, hour, hours, day, days
 using Oceananigans.Units: kilometers, kilometer, meter, meters
 
-filename = "OUTPUTS/cpu_wind_simulation_small"
+filename = "OUTPUTS/cpu_wind_simulation"
 
 @info"Setting up model"
 
-const Nx = 512     # number of points in each of horizontal directions
-const Nz = 128          # number of points in the vertical direction
+const Nx = 1024     # number of points in each of horizontal directions
+const Nz = 256          # number of points in the vertical direction
 
 const Lx = 10kilometers     # (m) domain horizontal extents
 const Lz = 2000meters          # (m) domain depth
@@ -31,20 +31,6 @@ grid = RectilinearGrid(CPU(); size = (Nx, Nz),
 # SeawaterBuoyancy:
 teos10 = TEOS10EquationOfState()
 buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState())
-
-#=
-const ν = 1e-3
-const κ = 1e-6
-
-const Ra = g * α * Δ * Lz^3 / (ν * κ)
-const Pr = ν/κ
-=#
-
-#const Ra = 1e12
-#const Pr = 1
-
-#const ν = sqrt(g * α * Δ * Lz^3 / (Pr * Ra))
-#const κ = sqrt(g * α * Δ * Lz^3 * Pr / Ra)
 
 closure = ScalarDiffusivity(ν=1e-6, κ=1.4e-7)
 
@@ -81,16 +67,17 @@ model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:T,:S),
                             closure = closure,
-                            boundary_conditions = (;u=u_bcs)
+                            boundary_conditions = (u=u_bcs,)
 )
 
-# Initial conditions
+# Initial conditions - nothing at the moment
 
 # Random noise
 Ξ(z) = randn()
 
-# Temperature initial condition: a stable density gradient with random noise superposed.
+# Temperature initial condition:
 Tᵢ(x, z) = 20
+#a stable density gradient with random noise superposed - 
 #Tᵢ(x, z) = 20 - dTdz * z + dTdz * model.grid.Lz * 1e-5 * Ξ(z)
 
 Sᵢ(x, z) = 35
