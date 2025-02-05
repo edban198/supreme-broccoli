@@ -5,12 +5,12 @@
 #cores in each node.
 # X,Y are integers. Refer to table for various combinations
 #SBATCH -N 1
-#SBATCH -c 8
+#SBATCH -c 4
 #SBATCH -p cpu
 #SBATCH --qos=short
-#SBATCH -t 1-00:00:00
+#SBATCH -t 08:00:00
 
-#SBATCH --job-name=white_noise_cpu_sim
+#SBATCH --job-name=white_noise_cpu_sim_small
 
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user sfbj55@durham.ac.uk
