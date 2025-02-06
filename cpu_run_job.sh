@@ -5,7 +5,7 @@
 #cores in each node.
 # X,Y are integers. Refer to table for various combinations
 #SBATCH -N 1
-#SBATCH -c 4
+#SBATCH -c 32
 #SBATCH -p cpu
 #SBATCH --qos=short
 #SBATCH -t 18:00:00
