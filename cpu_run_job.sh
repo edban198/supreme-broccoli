@@ -5,10 +5,10 @@
 #cores in each node.
 # X,Y are integers. Refer to table for various combinations
 #SBATCH -N 1
-#SBATCH -c 32
+#SBATCH -c 4
 #SBATCH -p cpu
 #SBATCH --qos=short
-#SBATCH -t 12:00:00
+#SBATCH -t 18:00:00
 
 #SBATCH --job-name=white_noise_cpu_sim
 

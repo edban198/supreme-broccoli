@@ -16,8 +16,8 @@ filename = "OUTPUTS/cpu_wind_simulation"
 
 @info"Setting up model"
 
-const Nx = 1024     # number of points in each of horizontal directions
-const Nz = 256          # number of points in the vertical direction
+const Nx = 256     # number of points in each of horizontal directions
+const Nz = 128          # number of points in the vertical direction
 
 const Lx = 10kilometers     # (m) domain horizontal extents
 const Lz = 2000meters          # (m) domain depth
@@ -39,13 +39,13 @@ const u₁₀ = 5    # m s⁻¹, average wind velocity 10 meters above the ocean
 const cᴰ = 2.58e-3 # dimensionless drag coefficient
 const ρₐ = 1.225  # kg m⁻³, average density of air at sea-level
 
-τx = - ρₐ / ρₒ * cᴰ * u₁₀ * abs(u₁₀) # m² s⁻²
+const τx = - ρₐ / ρₒ * cᴰ * u₁₀ * abs(u₁₀) # m² s⁻²
 
-# Define a reference to hold the current flux value
-const current_flux = Ref(τx)
+const f = 1e-4 # s⁻¹, Coriolis parameter
 
-# Set the initial boundary condition using a function that reads from current_flux
-u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(current_flux[]))
+inertial_wave(x,t) = τx * cos(f*t)
+
+u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(inertial_wave))
 #=
 heaviside(x) = ifelse(x<0, zero(x), one(x))
 
@@ -90,8 +90,7 @@ uᵢ(x, z) = 1e-6 * Ξ(z)
 set!(model, u=uᵢ, w=uᵢ, T=Tᵢ, S=Sᵢ)
 
 # Setting up sim
-
-simulation = Simulation(model, Δt=30seconds, stop_time = 20days)
+simulation = Simulation(model, Δt=30seconds, stop_time = 5days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
@@ -105,15 +104,7 @@ progress_message(sim) = @printf("Iteration: %04d, time: %s, Δt: %s, max(|u|) = 
 
 add_callback!(simulation, progress_message, IterationInterval(100))
 
-# Modify the bc_update callback to update the current_flux value
-function bc_update(sim)
-    new_flux = - ρₐ / ρₒ * cᴰ * u₁₀ * abs(u₁₀) * abs(randn())
-    current_flux[] = new_flux
-end
-
-add_callback!(simulation, bc_update, IterationInterval(10))
 # Output
-
 u,v,w = model.velocities
 
 outputs = (s = sqrt(model.velocities.u^2 + model.velocities.w^2),
@@ -122,7 +113,7 @@ outputs = (s = sqrt(model.velocities.u^2 + model.velocities.w^2),
            u = model.velocities.u
 )
 
-const data_interval = 4minutes
+const data_interval = 10minutes
 
 simulation.output_writers[:simple_outputs] =
     JLD2OutputWriter(model, outputs,
