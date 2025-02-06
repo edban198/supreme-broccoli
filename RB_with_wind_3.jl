@@ -3,11 +3,9 @@
 #pkg"add Oceananigans, CairoMakie"
 
 using Printf
-using CUDA
 using CairoMakie
 using LaTeXStrings
 using Statistics
-using SeawaterPolynomials.TEOS10: TEOS10EquationOfState
 using Oceananigans
 using Oceananigans.Units: seconds, minute, minutes, hour, hours, day, days
 using Oceananigans.Units: kilometers, kilometer, meter, meters
@@ -19,8 +17,8 @@ filename = "OUTPUTS/cpu_wind_simulation"
 const Nx = 256     # number of points in each of horizontal directions
 const Nz = 128          # number of points in the vertical direction
 
-const Lx = 10kilometers     # (m) domain horizontal extents
-const Lz = 2000meters          # (m) domain depth
+const Lx = 5kilometers     # (m) domain horizontal extents
+const Lz = 1000meters          # (m) domain depth
 
 grid = RectilinearGrid(CPU(); size = (Nx, Nz),
                        x = (0,Lx),
@@ -29,7 +27,6 @@ grid = RectilinearGrid(CPU(); size = (Nx, Nz),
 )
 
 # SeawaterBuoyancy:
-teos10 = TEOS10EquationOfState()
 buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState())
 
 closure = ScalarDiffusivity(ν=1e-6, κ=1.4e-7)
@@ -43,9 +40,7 @@ const τx = - ρₐ / ρₒ * cᴰ * u₁₀ * abs(u₁₀) # m² s⁻²
 
 const f = 1e-4 # s⁻¹, Coriolis parameter
 
-const k_x = 2π / Lx # m⁻¹, horizontal wavenumber
-
-inertial_wave(x,t) = τx * cos(k_x * x + f*t)
+inertial_wave(t) = τx * cos(f*t)
 
 u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(inertial_wave))
 #=
@@ -65,9 +60,10 @@ end
 
 sponge = Relaxation(rate = 1/30minutes, mask = bottom_mask_func, target=0)
 =#
-model = NonhydrostaticModel(; grid, buoyancy,
+model = NonhydrostaticModel(; grid,
                             advection = UpwindBiased(order=5),
                             tracers = (:T,:S),
+                            coriolis = FPlane(f),
                             closure = closure,
                             boundary_conditions = (u=u_bcs,)
 )
@@ -92,7 +88,7 @@ uᵢ(x, z) = 1e-6 * Ξ(z)
 set!(model, u=uᵢ, w=uᵢ, T=Tᵢ, S=Sᵢ)
 
 # Setting up sim
-simulation = Simulation(model, Δt=30seconds, stop_time = 60days)
+simulation = Simulation(model, Δt=30seconds, stop_time = 20days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
