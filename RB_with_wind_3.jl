@@ -90,7 +90,7 @@ uᵢ(x, z) = 1e-6 * Ξ(z)
 set!(model, u=uᵢ, w=uᵢ, T=Tᵢ, S=Sᵢ)
 
 # Setting up sim
-simulation = Simulation(model, Δt=30seconds, stop_time = 5days)
+simulation = Simulation(model, Δt=30seconds, stop_time = 60days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
