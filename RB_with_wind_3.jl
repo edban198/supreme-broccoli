@@ -40,7 +40,9 @@ const τx = - ρₐ / ρₒ * cᴰ * u₁₀ * abs(u₁₀) # m² s⁻²
 
 const f = 1e-4 # s⁻¹, Coriolis parameter
 
-inertial_wave(x,t) = τx * (cos(f*t))^2
+const k = 2π / Lx # m⁻¹, horizontal wavenumber
+
+inertial_wave(x,t) = τx
 
 u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(inertial_wave))
 #=
