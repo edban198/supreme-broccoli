@@ -14,8 +14,8 @@ filename = "OUTPUTS/cpu_wind_simulation"
 
 @info"Setting up model"
 
-const Nx = 512     # number of points in each of horizontal directions
-const Nz = 256          # number of points in the vertical direction
+const Nx = 128     # number of points in each of horizontal directions
+const Nz = 64          # number of points in the vertical direction
 
 const Lx = 5kilometers     # (m) domain horizontal extents
 const Lz = 1000meters          # (m) domain depth
@@ -43,7 +43,7 @@ const f = 1e-4 # s⁻¹, Coriolis parameter
 const k = 2π / Lx # m⁻¹, horizontal wavenumber
 
 const tₑ = 20days
-inertial_wave(x,t) = t ≤ tₑ ? τx : 0.0
+inertial_wave(x,t) = t ≤ tₑ ? τx*sin(f*t) : 0.0
 
 u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(inertial_wave))
 #=
