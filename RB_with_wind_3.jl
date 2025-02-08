@@ -14,8 +14,8 @@ filename = "OUTPUTS/cpu_wind_simulation"
 
 @info"Setting up model"
 
-const Nx = 256     # number of points in each of horizontal directions
-const Nz = 128          # number of points in the vertical direction
+const Nx = 512     # number of points in each of horizontal directions
+const Nz = 256          # number of points in the vertical direction
 
 const Lx = 5kilometers     # (m) domain horizontal extents
 const Lz = 1000meters          # (m) domain depth
@@ -42,7 +42,8 @@ const f = 1e-4 # s⁻¹, Coriolis parameter
 
 const k = 2π / Lx # m⁻¹, horizontal wavenumber
 
-inertial_wave(x,t) = τx
+const tₑ = 20days
+inertial_wave(x,t) = t ≤ tₑ ? τx : 0.0
 
 u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(inertial_wave))
 #=
@@ -90,7 +91,7 @@ uᵢ(x, z) = 1e-6 * Ξ(z)
 set!(model, u=uᵢ, w=uᵢ, T=Tᵢ, S=Sᵢ)
 
 # Setting up sim
-simulation = Simulation(model, Δt=30seconds, stop_time = 20days)
+simulation = Simulation(model, Δt=30seconds, stop_time = 40days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
