@@ -27,7 +27,8 @@ grid = RectilinearGrid(CPU(); size = (Nx, Nz),
 )
 
 # SeawaterBuoyancy:
-buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState())
+#buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState())
+buoyancy = BuoyancyTracer()
 
 closure = ScalarDiffusivity(ν=1e-6, κ=1.4e-7)
 
@@ -65,11 +66,17 @@ sponge = Relaxation(rate = 1/30minutes, mask = bottom_mask_func, target=0)
 =#
 model = NonhydrostaticModel(; grid,
                             advection = UpwindBiased(order=5),
-                            tracers = (:T,:S),
+                            tracers = (:b),
                             coriolis = FPlane(f),
-                            closure = closure,
-                            boundary_conditions = (u=u_bcs,)
+                            closure = closure
 )
+
+#Set buoyancy with N²
+const N² = 1e-5
+b₀(x, z) = N² * (z)
+ξ(x, z) = exp(-(x^2  + (z + 50)^2)/20)
+buoy(x,z) = b₀(x,z) + 1e-3 * ξ(x,z)
+set!(model, b = buoy)
 
 # Initial conditions - nothing at the moment
 
@@ -88,10 +95,10 @@ uᵢ(x, z) = 1e-6 * Ξ(z)
 #uᵢ(x, z) = 0
 
 # set the model fields using functions or constants:
-set!(model, u=uᵢ, w=uᵢ, T=Tᵢ, S=Sᵢ)
+set!(model, u=uᵢ, w=uᵢ)
 
 # Setting up sim
-simulation = Simulation(model, Δt=30seconds, stop_time = 40days)
+simulation = Simulation(model, Δt=30seconds, stop_time = 20days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
