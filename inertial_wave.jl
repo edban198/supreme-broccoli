@@ -14,11 +14,11 @@ filename = "OUTPUTS/cpu_wind_simulation"
 
 @info"Setting up model"
 
-const Nx = 32     # number of points in each of horizontal directions
-const Nz = 32          # number of points in the vertical direction
+const Nx = 128     # number of points in each of horizontal directions
+const Nz = 128          # number of points in the vertical direction
 
-const Lx = 1000meters     # (m) domain horizontal extents
-const Lz = 1000meters          # (m) domain depth
+const Lx = 2000meters     # (m) domain horizontal extents
+const Lz = 2000meters          # (m) domain depth
 
 grid = RectilinearGrid(CPU(); size = (Nx, Nz),
                        x = (0,Lx),
@@ -44,7 +44,7 @@ const ωₜ = 0.95 * f
 
 const k = 2π / Lx # m⁻¹, horizontal wavenumber
 
-const tₑ = 20days
+const tₑ = 10days
 inertial_wave(x,t) = t ≤ tₑ ? τx*sin(ωₜ*t) : 0.0
 
 u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(inertial_wave))
@@ -99,7 +99,7 @@ uᵢ(x, z) = 1e-6 * Ξ(z)
 set!(model, u=uᵢ, w=uᵢ)
 
 # Setting up sim
-simulation = Simulation(model, Δt=30seconds, stop_time = 2days)
+simulation = Simulation(model, Δt=30seconds, stop_time = 20days)
 
 wizard = TimeStepWizard(cfl=0.5, max_change=1.1, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(5))
@@ -117,7 +117,7 @@ add_callback!(simulation, progress_message, IterationInterval(100))
 u,v,w = model.velocities
 
 outputs = (s = sqrt(model.velocities.u^2 + model.velocities.w^2),
-           b′ = model.tracers.b - b₀,
+           b = model.tracers.b,
 )
 
 data_interval = 10minutes
@@ -133,8 +133,32 @@ simulation.output_writers[:simple_outputs] =
 run!(simulation)
 
 s_timeseries = FieldTimeSeries(filename * ".jld2", "s")
+b_timeseries = FieldTimeSeries(filename * ".jld2", "b")
+times = s_timeseries.times
 
-@info s_timeseries
+n = Observable(1)
+
+sn = @lift s_timeseries[$n]
+bn = @lift b_timeseries[$n]
+
+@info"Plotting animation"
+
+axis_kwargs = (xlabel = "x (km)", ylabel = "z (m)")
+
+fig = Figure(resolution = (600, 1000))
+
+ax_s = Axis(fig[2,1]; title = L"Speed, $s = \sqrt{u^2+w^2}$", axis_kwargs...)
+ax_b = Axis(fig[3,1]; title = L"Buoyancy, $b$", axis_kwargs...)
+
+title = @lift "t = " * prettytime(times[$n])
+Label(fig[1, 1:2], title, fontsize = 24, tellwidth=true)
+
+hm_s = heatmap!(ax_s, sn; colormap = :speed)
+Colorbar(fig[2,2], hm_s, label = "m/s")
+
+hm_b = heatmap!(ax_b, bn; colormap = :balance)
+Colorbar(fig[3,2], hm_b, label = "kg/m³")
+
 #record movie
 frames = 1:length(times)
 @info "Making an animation..."

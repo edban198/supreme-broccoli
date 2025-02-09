@@ -10,7 +10,7 @@
 #SBATCH --qos=short
 #SBATCH -t 18:00:00
 
-#SBATCH --job-name=cpu_wind_sim
+#SBATCH --job-name=cpu_inertial_wave_sim
 
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user sfbj55@durham.ac.uk
@@ -18,4 +18,4 @@
 # Run the program
 cd
 
-./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/RB_with_wind_3.jl
+./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/inertial_wave.jl
