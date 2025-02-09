@@ -14,10 +14,10 @@ filename = "OUTPUTS/cpu_wind_simulation"
 
 @info"Setting up model"
 
-const Nx = 128     # number of points in each of horizontal directions
-const Nz = 128          # number of points in the vertical direction
+const Nx = 512     # number of points in each of horizontal directions
+const Nz = 512          # number of points in the vertical direction
 
-const Lx = 1000meters     # (m) domain horizontal extents
+const Lx = 2000meters     # (m) domain horizontal extents
 const Lz = 1000meters          # (m) domain depth
 
 grid = RectilinearGrid(CPU(); size = (Nx, Nz),
@@ -68,6 +68,7 @@ sponge = Relaxation(rate = 1/30minutes, mask = bottom_mask_func, target=0)
 model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:b),
+                            coriolis = FPlane(f),
                             closure = closure
 )
 
@@ -97,7 +98,7 @@ uᵢ(x, z) = 1e-6 * Ξ(z)
 set!(model, u=uᵢ, w=uᵢ)
 
 # Setting up sim
-simulation = Simulation(model, Δt=30seconds, stop_time = 20days)
+simulation = Simulation(model, Δt=30seconds, stop_time = 5days)
 
 wizard = TimeStepWizard(cfl=1.1, max_change=1.1, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
@@ -120,7 +121,7 @@ outputs = (s = sqrt(model.velocities.u^2 + model.velocities.w^2),
            u = model.velocities.u
 )
 
-const data_interval = 10minutes
+const data_interval = 4minutes
 
 simulation.output_writers[:simple_outputs] =
     JLD2OutputWriter(model, outputs,
