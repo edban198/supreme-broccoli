@@ -14,10 +14,10 @@ filename = "OUTPUTS/cpu_wind_simulation"
 
 @info"Setting up model"
 
-const Nx = 128     # number of points in each of horizontal directions
-const Nz = 64          # number of points in the vertical direction
+const Nx = 512     # number of points in each of horizontal directions
+const Nz = 512          # number of points in the vertical direction
 
-const Lx = 5kilometers     # (m) domain horizontal extents
+const Lx = 1000meters     # (m) domain horizontal extents
 const Lz = 1000meters          # (m) domain depth
 
 grid = RectilinearGrid(CPU(); size = (Nx, Nz),
@@ -40,11 +40,12 @@ const ρₐ = 1.225  # kg m⁻³, average density of air at sea-level
 const τx = - ρₐ / ρₒ * cᴰ * u₁₀ * abs(u₁₀) # m² s⁻²
 
 const f = 1e-4 # s⁻¹, Coriolis parameter
+const ω = 0.95 * f
 
 const k = 2π / Lx # m⁻¹, horizontal wavenumber
 
 const tₑ = 20days
-inertial_wave(x,t) = t ≤ tₑ ? τx*sin(f*t) : 0.0
+inertial_wave(x,t) = t ≤ tₑ ? τx*sin(ω*t) : 0.0
 
 u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(inertial_wave))
 #=
@@ -64,11 +65,12 @@ end
 
 sponge = Relaxation(rate = 1/30minutes, mask = bottom_mask_func, target=0)
 =#
-model = NonhydrostaticModel(; grid,
+model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:b),
                             coriolis = FPlane(f),
-                            closure = closure
+                            closure = closure,
+                            boundary_conditions = (u=u_bcs,)
 )
 
 #Set buoyancy with N²
@@ -91,8 +93,8 @@ Tᵢ(x, z) = 20
 Sᵢ(x, z) = 35
 
 # Velocity initial condition:
-uᵢ(x, z) = 1e-6 * Ξ(z)
-#uᵢ(x, z) = 0
+#uᵢ(x, z) = 1e-6 * Ξ(z)
+uᵢ(x, z) = 0
 
 # set the model fields using functions or constants:
 set!(model, u=uᵢ, w=uᵢ)
