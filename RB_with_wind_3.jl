@@ -40,12 +40,12 @@ const ρₐ = 1.225  # kg m⁻³, average density of air at sea-level
 const τx = - ρₐ / ρₒ * cᴰ * u₁₀ * abs(u₁₀) # m² s⁻²
 
 const f = 1e-4 # s⁻¹, Coriolis parameter
-const ω = 0.95 * f
+const ωₜ = 0.95 * f
 
 const k = 2π / Lx # m⁻¹, horizontal wavenumber
 
 const tₑ = 20days
-inertial_wave(x,t) = t ≤ tₑ ? τx*sin(ω*t) : 0.0
+inertial_wave(x,t) = t ≤ tₑ ? τx*sin(ωₜ*t) : 0.0
 
 u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(inertial_wave))
 #=
@@ -68,16 +68,15 @@ sponge = Relaxation(rate = 1/30minutes, mask = bottom_mask_func, target=0)
 model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:b),
-                            coriolis = FPlane(f),
-                            closure = closure,
-                            boundary_conditions = (u=u_bcs,)
+                            boundary_conditions = (u=u_bcs,),
+                            closure = closure
 )
 
 #Set buoyancy with N²
 const N² = 1e-5
 b₀(x, z) = N² * (z)
 ξ(x, z) = exp(-(x^2  + (z + 50)^2)/20)
-buoy(x,z) = b₀(x,z) + 1e-3 * ξ(x,z)
+buoy(x,z) = b₀(x,z)
 set!(model, b = buoy)
 
 # Initial conditions - nothing at the moment
@@ -93,17 +92,17 @@ Tᵢ(x, z) = 20
 Sᵢ(x, z) = 35
 
 # Velocity initial condition:
-#uᵢ(x, z) = 1e-6 * Ξ(z)
-uᵢ(x, z) = 0
+uᵢ(x, z) = 1e-6 * Ξ(z)
+#uᵢ(x, z) = 0
 
 # set the model fields using functions or constants:
 set!(model, u=uᵢ, w=uᵢ)
 
 # Setting up sim
-simulation = Simulation(model, Δt=30seconds, stop_time = 20days)
+simulation = Simulation(model, Δt=30seconds, stop_time = 30days)
 
-wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
-simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
+wizard = TimeStepWizard(cfl=0.5, max_change=1.1, max_Δt=30seconds)
+simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(5))
 
 # Print a progress message
 progress_message(sim) = @printf("Iteration: %04d, time: %s, Δt: %s, max(|u|) = %.1e ms⁻¹, max(|w|) = %.1e ms⁻¹, wall time: %s\n",
