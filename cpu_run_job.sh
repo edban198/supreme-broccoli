@@ -10,7 +10,7 @@
 #SBATCH --qos=short
 #SBATCH -t 18:00:00
 
-#SBATCH --job-name=white_noise_cpu_sim
+#SBATCH --job-name=cpu_wind_sim
 
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user sfbj55@durham.ac.uk
