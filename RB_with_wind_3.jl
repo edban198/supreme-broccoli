@@ -74,9 +74,8 @@ model = NonhydrostaticModel(; grid, buoyancy,
 #Set buoyancy with N²
 const N² = 1e-5
 b₀(x, z) = N² * (z)
-ξ(x, z) = exp(-(x^2  + (z + 50)^2)/20)
-buoy(x,z) = b₀(x,z) + 1e-4 * ξ(x,z)
-set!(model, b = -buoy)
+buoy(x,z) = -(b₀(x,z))
+set!(model, b = buoy)
 
 # Initial conditions - nothing at the moment
 

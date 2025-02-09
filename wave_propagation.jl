@@ -62,7 +62,7 @@ model = NonhydrostaticModel(; grid,
 set!(model, u=0, w=0)
 
 # Match time-stepping to wave frequency
-simulation = Simulation(model, Δt=30seconds, stop_time=20days)
+simulation = Simulation(model, Δt=30seconds, stop_time=1days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
@@ -101,6 +101,7 @@ run!(simulation)
 w_timeseries = FieldTimeSeries(filename * ".jld2", "w")
 s_timeseries = FieldTimeSeries(filename * ".jld2", "s")
 ω_timeseries = FieldTimeSeries(filename * ".jld2", "ω")
+Eₖ_timeseries = FieldTimeSeries(filename * ".jld2", "Eₖ")
 times = w_timeseries.times
 
 set_theme!(Theme(fontsize = 24))
@@ -113,12 +114,15 @@ axis_kwargs = (xlabel = "x (km)", ylabel = "z (m)"
 ax_w = Axis(fig[2,1]; title = L"Veritcal Velocity, $w$", axis_kwargs...)
 ax_s = Axis(fig[3,1]; title = L"Speed, $s = \sqrt{u^2+w^2}$", axis_kwargs...)
 ax_ω = Axis(fig[4,1]; title = L"Vorticity, $\omega = \frac{\partial u}{\partial z} - \frac{\partial w}{\partial x}$", axis_kwargs...)
+ax_Eₖ = Axis(fig[5,1]; title = L"Kinetic Energy, $E_k = \frac{1}{2}(u^2 + w^2)$",
+    xlabel = "Eₖ", ylabel = "z(m)")
 
 n = Observable(1)
 
 w = @lift w_timeseries[$n]
 s = @lift s_timeseries[$n]
 ω = @lift ω_timeseries[$n]
+Eₖ = @lift Eₖ_timeseries[$n]
 
 wlims = (minimum(interior(w_timeseries)), maximum(interior(w_timeseries)))
 slims = (minimum(interior(s_timeseries)), maximum(interior(s_timeseries)))
@@ -146,6 +150,8 @@ Colorbar(fig[3,2], hm_s)
 
 hm_ω = heatmap!(ax_ω, ω; colormap = :balance, colorrange = ωlims)
 Colorbar(fig[4,2], hm_ω)
+
+lines!(ax_Eₖ, Eₖ)
 
 title = @lift "t = " * prettytime(times[$n])
 Label(fig[1, 1:2], title, fontsize = 24, tellwidth=true)
