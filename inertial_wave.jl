@@ -14,8 +14,8 @@ filename = "OUTPUTS/wind_simulation"
 
 @info"Setting up model"
 
-const Nx = 128     # number of points in each of horizontal directions
-const Nz = 128          # number of points in the vertical direction
+const Nx = 256     # number of points in each of horizontal directions
+const Nz = 256          # number of points in the vertical direction
 
 const Lx = 2000meters     # (m) domain horizontal extents
 const Lz = 2000meters          # (m) domain depth
@@ -27,8 +27,8 @@ grid = RectilinearGrid(CPU(); size = (Nx, Nz),
 )
 
 # SeawaterBuoyancy:
-buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState())
-#buoyancy = BuoyancyTracer()
+#buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState())
+buoyancy = BuoyancyTracer()
 
 closure = ScalarDiffusivity(ν=1e-6, κ=1.4e-7)
 
@@ -44,7 +44,7 @@ const ωₜ = 0.95 * f
 
 const k = 2π / Lx # m⁻¹, horizontal wavenumber
 
-const tₑ = 10days
+const tₑ = 20days
 inertial_wave(x,t) = t ≤ tₑ ? τx : 0.0
 
 u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(inertial_wave))
@@ -72,14 +72,14 @@ model = NonhydrostaticModel(; grid, buoyancy,
                             coriolis = FPlane(f),
                             closure = closure
 )
-#=
+
 #Set buoyancy with N²
 const N² = 1e-5
 b₀(x, z) = N² * (z)
 ξ(x, z) = exp(-(x^2  + (z + 50)^2)/20)
-buoy(x,z) = -b₀(x,z)
+buoy(x,z) = b₀(x,z)
 set!(model, b = buoy)
-=#
+
 # Initial conditions - nothing at the moment
 
 # Random noise
@@ -100,7 +100,7 @@ uᵢ(x, z) = 1e-6 * Ξ(z)
 set!(model, u=uᵢ, w=uᵢ)
 
 # Setting up sim
-simulation = Simulation(model, Δt=30seconds, stop_time = 20days)
+simulation = Simulation(model, Δt=30seconds, stop_time = 30days)
 
 wizard = TimeStepWizard(cfl=1.1, max_change=1.1, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(5))

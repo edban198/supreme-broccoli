@@ -18,4 +18,4 @@
 # Run the program
 cd
 
-./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/inertial_wave.jl.jl
+./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/inertial_wave.jl
