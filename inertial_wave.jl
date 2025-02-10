@@ -10,7 +10,7 @@ using Oceananigans
 using Oceananigans.Units: seconds, minute, minutes, hour, hours, day, days
 using Oceananigans.Units: kilometers, kilometer, meter, meters
 
-filename = "OUTPUTS/cpu_wind_simulation"
+filename = "OUTPUTS/wind_simulation"
 
 @info"Setting up model"
 
@@ -27,8 +27,8 @@ grid = RectilinearGrid(CPU(); size = (Nx, Nz),
 )
 
 # SeawaterBuoyancy:
-#buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState())
-buoyancy = BuoyancyTracer()
+buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState())
+#buoyancy = BuoyancyTracer()
 
 closure = ScalarDiffusivity(ν=1e-6, κ=1.4e-7)
 
@@ -45,7 +45,7 @@ const ωₜ = 0.95 * f
 const k = 2π / Lx # m⁻¹, horizontal wavenumber
 
 const tₑ = 10days
-inertial_wave(x,t) = t ≤ tₑ ? τx*sin(ωₜ*t) : 0.0
+inertial_wave(x,t) = t ≤ tₑ ? τx : 0.0
 
 u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(inertial_wave))
 #=
@@ -67,18 +67,19 @@ sponge = Relaxation(rate = 1/30minutes, mask = bottom_mask_func, target=0)
 =#
 model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
-                            tracers = (:b),
+                            tracers = (:b,:S,:T),
                             boundary_conditions = (u=u_bcs,),
+                            coriolis = FPlane(f),
                             closure = closure
 )
-
+#=
 #Set buoyancy with N²
 const N² = 1e-5
 b₀(x, z) = N² * (z)
 ξ(x, z) = exp(-(x^2  + (z + 50)^2)/20)
-buoy(x,z) = b₀(x,z)
+buoy(x,z) = -b₀(x,z)
 set!(model, b = buoy)
-
+=#
 # Initial conditions - nothing at the moment
 
 # Random noise
