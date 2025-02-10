@@ -101,7 +101,7 @@ set!(model, u=uᵢ, w=uᵢ)
 # Setting up sim
 simulation = Simulation(model, Δt=30seconds, stop_time = 20days)
 
-wizard = TimeStepWizard(cfl=0.5, max_change=1.1, max_Δt=30seconds)
+wizard = TimeStepWizard(cfl=1.1, max_change=1.1, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(5))
 
 # Print a progress message
@@ -118,6 +118,8 @@ u,v,w = model.velocities
 
 outputs = (s = sqrt(model.velocities.u^2 + model.velocities.w^2),
            b = model.tracers.b,
+           u = model.velocities.u,
+           w = model.velocities.w
 )
 
 data_interval = 10minutes
@@ -134,30 +136,42 @@ run!(simulation)
 
 s_timeseries = FieldTimeSeries(filename * ".jld2", "s")
 b_timeseries = FieldTimeSeries(filename * ".jld2", "b")
+u_timeseries = FieldTimeSeries(filename * ".jld2", "u")
+w_timeseries = FieldTimeSeries(filename * ".jld2", "w")
 times = s_timeseries.times
 
 n = Observable(1)
 
 sn = @lift s_timeseries[$n]
 bn = @lift b_timeseries[$n]
+un = @lift u_timeseries[$n]
+wn = @lift w_timeseries[$n]
 
 @info"Plotting animation"
 
 axis_kwargs = (xlabel = "x (km)", ylabel = "z (m)")
 
-fig = Figure(resolution = (600, 1000))
+fig = Figure(resolution = (1200, 1200))
 
 ax_s = Axis(fig[2,1]; title = L"Speed, $s = \sqrt{u^2+w^2}$", axis_kwargs...)
-ax_b = Axis(fig[3,1]; title = L"Buoyancy, $b$", axis_kwargs...)
+ax_b = Axis(fig[2,3]; title = L"Buoyancy, $b$", axis_kwargs...)
+ax_u = Axis(fig[3,1]; title = L"Horizontal Velocity, $u$", axis_kwargs...)
+ax_w = Axis(fig[3,3]; title = L"Vertical Velocity, $w$", axis_kwargs...)
 
 title = @lift "t = " * prettytime(times[$n])
-Label(fig[1, 1:2], title, fontsize = 24, tellwidth=true)
+Label(fig[1,:], title, fontsize = 24, tellwidth=true)
 
 hm_s = heatmap!(ax_s, sn; colormap = :speed)
 Colorbar(fig[2,2], hm_s, label = "m/s")
 
 hm_b = heatmap!(ax_b, bn; colormap = :balance)
-Colorbar(fig[3,2], hm_b, label = "kg/m³")
+Colorbar(fig[2,4], hm_b, label = "kg/m³")
+
+hm_u = heatmap!(ax_u, un; colormap = :speed)
+Colorbar(fig[3,2], hm_u, label = "m/s")
+
+hm_w = heatmap!(ax_w, wn; colormap = :speed)
+Colorbar(fig[3,4], hm_w, label = "m/s")
 
 #record movie
 frames = 1:length(times)
