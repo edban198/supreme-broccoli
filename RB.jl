@@ -13,8 +13,8 @@ filename = "./OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 256     # number of points in each of horizontal directions
-const Nz = 256          # number of points in the vertical direction
+const Nx = 64     # number of points in each of horizontal directions
+const Nz = 64          # number of points in the vertical direction
 
 const Lx = 64     # (m) domain horizontal extents
 const Lz = 64          # (m) domain depth
@@ -83,7 +83,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=30seconds, stop_time = 20days)
+simulation = Simulation(model, Δt=30seconds, stop_time = 2days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
@@ -137,8 +137,6 @@ T = @lift T_timeseries[$n]
 
 Tlims = (minimum(abs, interior(T_timeseries)), maximum(abs, interior(T_timeseries)))
 
-xlims!(ax_avg_T, Tlims)
-
 hm_T = heatmap!(ax_T, T; colormap = :thermometer, colorrange = Tlims)
 Colorbar(fig[2,2], hm_T)
 
@@ -152,3 +150,44 @@ record(fig, filename * ".mp4", frames, framerate=64) do i
     n[] = i
 end
 
+
+#timesnaps:
+
+n = 6 #number of snapshots
+len = length(times)
+values = collect(range(1, stop=len, length=n))
+
+selected_indices_1 = round.(Int, values)[1:3]
+selected_indices_2 = round.(Int, values)[4:6]
+selected_times_1 = times[selected_indices_1]
+selected_times_2 = times[selected_indices_2]
+
+@info times[end]
+
+fig = Figure(resolution = (2400,800))
+
+Label(fig[1, :], L"title here", fontsize = 24)
+
+for (i,idx) in enumerate(selected_indices_1)
+    T_snapshot = T_timeseries[idx]
+    ax = Axis(fig[2,i]; title = "t = $(round(selected_times_1[i], digits=3))",
+              xlabel = "x",
+              ylabel = "z")
+    heatmap!(ax, xT, zT, T_snapshot; colormap=:thermometer)
+end
+
+for (i,idx) in enumerate(selected_indices_2)
+    T_snapshot = T_timeseries[idx]
+    ax = Axis(fig[3,i]; title = "t = $(round(selected_times_2[i], digits=3))",
+              xlabel = "x",
+              ylabel = "z")
+    heatmap!(ax, xT, zT, T_snapshot; colormap=:thermometer)
+end
+
+Tlims = (minimum(abs,interior(T_timeseries)), maximum(abs,interior(T_timeseries)))
+
+Colorbar(fig[2:3, 4]; colormap = :thermometer, colorrange = Tlims)
+
+# Save the figure
+CairoMakie.activate!(type = "png")
+save(filename * "heatmaps_selected_times.png", fig)
