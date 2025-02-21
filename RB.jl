@@ -13,8 +13,8 @@ filename = "./OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 512     # number of points in each of horizontal directions
-const Nz = 512          # number of points in the vertical direction
+const Nx = 256     # number of points in each of horizontal directions
+const Nz = 256          # number of points in the vertical direction
 
 const Lx = 64     # (m) domain horizontal extents
 const Lz = 64          # (m) domain depth
@@ -82,7 +82,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=30seconds, stop_time = 18days)
+simulation = Simulation(model, Δt=10seconds, stop_time = 18days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
