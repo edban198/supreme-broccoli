@@ -13,13 +13,13 @@ filename = "./OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 64     # number of points in each of horizontal directions
-const Nz = 64          # number of points in the vertical direction
+const Nx = 512     # number of points in each of horizontal directions
+const Nz = 512          # number of points in the vertical direction
 
 const Lx = 64     # (m) domain horizontal extents
 const Lz = 64          # (m) domain depth
 
-grid = RectilinearGrid(CPU(); size = (Nx, Nz),
+grid = RectilinearGrid(GPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (-Lz,0),
                        topology = (Bounded, Flat, Bounded)
@@ -39,7 +39,6 @@ T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(20), bottom = Value
 
 const g = buoyancy.gravitational_acceleration
 const α = buoyancy.equation_of_state.thermal_expansion
-
 
 const ν = 1e-3
 const κ = 1e-6
@@ -72,7 +71,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
 Ξ(z) = randn()
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
-Tᵢ(x, z) = 20 - Δ/Lz * z + 1e-4 * Ξ(z)
+Tᵢ(x, z) = 20
 
 # Velocity initial condition:
 uᵢ(x, z) = 1e-6 * Ξ(z)
@@ -83,7 +82,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=30seconds, stop_time = 2days)
+simulation = Simulation(model, Δt=30seconds, stop_time = 18days)
 
 wizard = TimeStepWizard(cfl=1.0, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
@@ -142,14 +141,14 @@ Colorbar(fig[2,2], hm_T)
 
 title = @lift "t = " * prettytime(times[$n])
 Label(fig[1, :], title, fontsize = 24, tellwidth=true)
-
+#=
 #record movie
 frames = 1:length(times)
 @info "Making an animation..."
 record(fig, filename * ".mp4", frames, framerate=64) do i
     n[] = i
 end
-
+=#
 
 #timesnaps:
 
@@ -164,30 +163,25 @@ selected_times_2 = times[selected_indices_2]
 
 @info times[end]
 
-fig = Figure(resolution = (2400,800))
-
-Label(fig[1, :], L"title here", fontsize = 24)
+fig = Figure(resolution = (1600,800))
 
 for (i,idx) in enumerate(selected_indices_1)
     T_snapshot = T_timeseries[idx]
-    ax = Axis(fig[2,i]; title = "t = $(round(selected_times_1[i], digits=3))",
-              xlabel = "x",
-              ylabel = "z")
-    heatmap!(ax, xT, zT, T_snapshot; colormap=:thermometer)
+    ax = Axis(fig[2,i]; title = "t = $(prettytime(selected_times_1[i]))", axis_kwargs...)
+    heatmap!(ax, T_snapshot; colormap=:thermometer)
 end
 
 for (i,idx) in enumerate(selected_indices_2)
     T_snapshot = T_timeseries[idx]
-    ax = Axis(fig[3,i]; title = "t = $(round(selected_times_2[i], digits=3))",
-              xlabel = "x",
-              ylabel = "z")
-    heatmap!(ax, xT, zT, T_snapshot; colormap=:thermometer)
+    ax = Axis(fig[3,i]; title = "t = $(prettytime(selected_times_2[i]))", axis_kwargs...)
+    heatmap!(ax, T_snapshot; colormap=:thermometer)
 end
 
-Tlims = (minimum(abs,interior(T_timeseries)), maximum(abs,interior(T_timeseries)))
+mid_tick = 20.0  # Force middle tick at 20
+ticks = [Tlims[1], mid_tick, Tlims[end]]
+Colorbar(fig[2:3, 4]; ticks = ticks, colormap = :thermometer, colorrange = Tlims)
 
-Colorbar(fig[2:3, 4]; colormap = :thermometer, colorrange = Tlims)
-
+Label(fig[1, :], L"title here", fontsize = 24)
 # Save the figure
 CairoMakie.activate!(type = "png")
 save(filename * "heatmaps_selected_times.png", fig)
