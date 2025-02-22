@@ -82,7 +82,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=1second, stop_time = 18days)
+simulation = Simulation(model, Δt=2seconds, stop_time = 30days)
 
 wizard = TimeStepWizard(cfl=1.1, max_Δt=5seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
@@ -154,7 +154,7 @@ end
 
 n = 6 #number of snapshots
 len = length(times)
-values = collect(range(1, stop=len, length=n))
+values = collect(range(len/2, stop=len, length=n))
 
 selected_indices_1 = round.(Int, values)[1:3]
 selected_indices_2 = round.(Int, values)[4:6]
