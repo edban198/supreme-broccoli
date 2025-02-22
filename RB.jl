@@ -161,8 +161,6 @@ selected_indices_2 = round.(Int, values)[4:6]
 selected_times_1 = times[selected_indices_1]
 selected_times_2 = times[selected_indices_2]
 
-@info times[end]
-
 fig = Figure(resolution = (1600,800))
 
 for (i,idx) in enumerate(selected_indices_1)
