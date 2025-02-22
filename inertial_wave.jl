@@ -20,7 +20,7 @@ const Nz = 256          # number of points in the vertical direction
 const Lx = 2000meters     # (m) domain horizontal extents
 const Lz = 2000meters          # (m) domain depth
 
-grid = RectilinearGrid(CPU(); size = (Nx, Nz),
+grid = RectilinearGrid(GPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (-Lz,0),
                        topology = (Periodic, Flat, Bounded)
@@ -45,9 +45,9 @@ const ωₜ = 0.95 * f
 const k = 2π / Lx # m⁻¹, horizontal wavenumber
 
 const tₑ = 20days
-inertial_wave(x,t) = t ≤ tₑ ? τx : 0.0
+inertial_wave(x,t) = τx
 
-u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(inertial_wave))
+u_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(inertial_wave))
 #=
 heaviside(x) = ifelse(x<0, zero(x), one(x))
 
@@ -103,7 +103,7 @@ set!(model, u=uᵢ, w=uᵢ)
 simulation = Simulation(model, Δt=30seconds, stop_time = 30days)
 
 wizard = TimeStepWizard(cfl=1.1, max_change=1.1, max_Δt=30seconds)
-simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(5))
+simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
 # Print a progress message
 progress_message(sim) = @printf("Iteration: %04d, time: %s, Δt: %s, max(|u|) = %.1e ms⁻¹, max(|w|) = %.1e ms⁻¹, wall time: %s\n",
