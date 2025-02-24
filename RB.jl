@@ -82,7 +82,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=2seconds, stop_time = 30days)
+simulation = Simulation(model, Δt=2seconds, stop_time = 30day)
 
 wizard = TimeStepWizard(cfl=1.1, max_Δt=5seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
@@ -101,6 +101,7 @@ add_callback!(simulation, progress_message, IterationInterval(100))
 u,v,w = model.velocities
 
 outputs = (T = model.tracers.T,
+    s = sqrt(model.velocities.u^2 + model.velocities.w^2)
 )
 
 const data_interval = 2minutes
@@ -118,68 +119,46 @@ run!(simulation)
 @info"Plotting animation"
 
 T_timeseries = FieldTimeSeries(filename * ".jld2", "T")
+s_timeseries = FieldTimeSeries(filename * ".jld2", "s")
 times = T_timeseries.times
 
 xT, zT = nodes(T_timeseries)
+xs, zs = nodes(s_timeseries)
 
 set_theme!(Theme(fontsize = 24))
 
-fig = Figure(size = (1000,1200))
+fig = Figure(size = (1200,800))
 
-axis_kwargs = (xlabel = "x (m)", ylabel = "z (m)")
+axis_kwargs = (xlabel = "x (m)", ylabel = "z (m)", aspect = DataAspect())
 
 ax_T = Axis(fig[2,1]; title = L"Temperature, $T$", axis_kwargs...)
+ax_s = Axis(fig[2,3]; title = L"Speed, $s = \sqrt{u^2+w^2}$", axis_kwargs...)
 
 n = Observable(1)
 
 T = @lift T_timeseries[$n]
+s = @lift s_timeseries[$n]
 
 Tlims = (minimum(abs, interior(T_timeseries)), maximum(abs, interior(T_timeseries)))
+slims = (minimum(abs, interior(s_timeseries)), maximum(abs, interior(s_timeseries)))
 
 hm_T = heatmap!(ax_T, T; colormap = :thermometer, colorrange = Tlims)
 Colorbar(fig[2,2], hm_T)
 
+hm_s = heatmap!(ax_s, s; colormap = :speed, colorrange = slims)
+Colorbar(fig[2,4], hm_s)
+
 title = @lift "t = " * prettytime(times[$n])
 Label(fig[1, :], title, fontsize = 24, tellwidth=true)
-#=
+
 #record movie
 frames = 1:length(times)
 @info "Making an animation..."
 record(fig, filename * ".mp4", frames, framerate=64) do i
     n[] = i
 end
-=#
 
-#timesnaps:
+#Save end image
 
-n = 6 #number of snapshots
-len = length(times)
-values = collect(range(len/2, stop=len, length=n))
-
-selected_indices_1 = round.(Int, values)[1:3]
-selected_indices_2 = round.(Int, values)[4:6]
-selected_times_1 = times[selected_indices_1]
-selected_times_2 = times[selected_indices_2]
-
-fig = Figure(resolution = (1600,800))
-
-for (i,idx) in enumerate(selected_indices_1)
-    T_snapshot = T_timeseries[idx]
-    ax = Axis(fig[2,i]; title = "t = $(prettytime(selected_times_1[i]))", axis_kwargs...)
-    heatmap!(ax, T_snapshot; colormap=:thermometer)
-end
-
-for (i,idx) in enumerate(selected_indices_2)
-    T_snapshot = T_timeseries[idx]
-    ax = Axis(fig[3,i]; title = "t = $(prettytime(selected_times_2[i]))", axis_kwargs...)
-    heatmap!(ax, T_snapshot; colormap=:thermometer)
-end
-
-mid_tick = 20.0  # Force middle tick at 20
-ticks = [Tlims[1], mid_tick, Tlims[end]]
-Colorbar(fig[2:3, 4]; ticks = ticks, colormap = :thermometer, colorrange = Tlims)
-
-Label(fig[1, :], L"title here", fontsize = 24)
-# Save the figure
-CairoMakie.activate!(type = "png")
-save(filename * "heatmaps_selected_times.png", fig)
+@info "Saving final frame..."
+save(filename * "_final.png", fig)
