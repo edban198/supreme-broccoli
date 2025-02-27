@@ -14,10 +14,10 @@ filename = "OUTPUTS/cpu_wind_simulation"
 
 @info"Setting up model"
 
-const Nx = 512     # number of points in each of horizontal directions
-const Nz = 512          # number of points in the vertical direction
+const Nx = 64     # number of points in each of horizontal directions
+const Nz = 64          # number of points in the vertical direction
 
-const Lx = 2000meters     # (m) domain horizontal extents
+const Lx = 1000meters     # (m) domain horizontal extents
 const Lz = 1000meters          # (m) domain depth
 
 grid = RectilinearGrid(CPU(); size = (Nx, Nz),
@@ -45,7 +45,7 @@ const ωₜ = 0.95 * f
 const k = 2π / Lx # m⁻¹, horizontal wavenumber
 
 const tₑ = 10days
-inertial_wave(x,t) = t ≤ tₑ ? τx*sin(ωₜ*t) : 0.0
+inertial_wave(x,t) = τx
 
 u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(inertial_wave))
 #=
@@ -68,7 +68,6 @@ sponge = Relaxation(rate = 1/30minutes, mask = bottom_mask_func, target=0)
 model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:b),
-                            coriolis = FPlane(f),
                             closure = closure
 )
 
@@ -98,9 +97,9 @@ uᵢ(x, z) = 1e-6 * Ξ(z)
 set!(model, u=uᵢ, w=uᵢ)
 
 # Setting up sim
-simulation = Simulation(model, Δt=30seconds, stop_time = 5days)
+simulation = Simulation(model, Δt=5seconds, stop_time = 20days)
 
-wizard = TimeStepWizard(cfl=1.1, max_change=1.1, max_Δt=30seconds)
+wizard = TimeStepWizard(cfl=1.1, max_change=1.1, max_Δt=10seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
 
 # Print a progress message
