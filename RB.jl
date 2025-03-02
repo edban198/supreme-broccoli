@@ -13,15 +13,15 @@ filename = "./OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 256     # number of points in each of horizontal directions
-const Nz = 256          # number of points in the vertical direction
+const Nx = 64     # number of points in each of horizontal directions
+const Nz = 64          # number of points in the vertical direction
 
-const Lx = 64     # (m) domain horizontal extents
-const Lz = 64          # (m) domain depth
+const Lx = 1     # (m) domain horizontal extents
+const Lz = 1          # (m) domain depth
 
-grid = RectilinearGrid(GPU(); size = (Nx, Nz),
+grid = RectilinearGrid(CPU(); size = (Nx, Nz),
                        x = (0,Lx),
-                       z = (-Lz,0),
+                       z = (0,Lz),
                        topology = (Bounded, Flat, Bounded)
 )
 
@@ -31,7 +31,7 @@ buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(thermal_expa
 const Δ = 1e-3
 const Γ = 1e-6
 #RB1
-T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(20), bottom = ValueBoundaryCondition(20+Δ))
+T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 #RB2
 #T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Γ), bottom = FluxBoundaryCondition(Γ))
 #RB3
@@ -39,20 +39,20 @@ T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(20), bottom = Value
 
 const g = buoyancy.gravitational_acceleration
 const α = buoyancy.equation_of_state.thermal_expansion
-
+#=
 const ν = 1e-3
 const κ = 1e-6
 
 const Ra = g * α * Δ * Lz^3 / (ν * κ)
 const Pr = ν/κ
+=#
 
-#=
 const Ra = 1e12
 const Pr = 1
 
 const ν = sqrt(g * α * Δ * Lz^3 / (Pr * Ra))
 const κ = sqrt(g * α * Δ * Lz^3 * Pr / Ra)
-=#
+
 
 @info "Ra = $Ra, Pr = $Pr, ν = $ν, κ = $κ"
 
@@ -71,7 +71,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
 Ξ(z) = randn()
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
-Tᵢ(x, z) = 20
+Tᵢ(x, z) = 0
 
 # Velocity initial condition:
 uᵢ(x, z) = 1e-6 * Ξ(z)
@@ -82,9 +82,9 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=2seconds, stop_time = 30day)
+simulation = Simulation(model, Δt=30seconds, stop_time = 1day)
 
-wizard = TimeStepWizard(cfl=1.1, max_Δt=5seconds)
+wizard = TimeStepWizard(cfl=1.1, max_Δt=2minutes)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
 
 # Print a progress message
@@ -98,10 +98,10 @@ add_callback!(simulation, progress_message, IterationInterval(100))
 
 # Output
 
-u,v,w = model.velocities
-
 outputs = (T = model.tracers.T,
-    s = sqrt(model.velocities.u^2 + model.velocities.w^2)
+    w = model.velocities.w,
+    s = sqrt(model.velocities.u^2 + model.velocities.w^2),
+    avg_T = Average(model.tracers.T, dims=(1, 2))
 )
 
 const data_interval = 2minutes
@@ -115,50 +115,48 @@ simulation.output_writers[:simple_outputs] =
 
 @info"Running the simulation..."
 run!(simulation)
-
 @info"Plotting animation"
 
 T_timeseries = FieldTimeSeries(filename * ".jld2", "T")
 s_timeseries = FieldTimeSeries(filename * ".jld2", "s")
+avg_T_timeseries = FieldTimeSeries(filename * ".jld2", "avg_T")
 times = T_timeseries.times
-
-xT, zT = nodes(T_timeseries)
-xs, zs = nodes(s_timeseries)
 
 set_theme!(Theme(fontsize = 24))
 
-fig = Figure(size = (1200,800))
+fig = Figure(size = (800,1800))
 
-axis_kwargs = (xlabel = "x (m)", ylabel = "z (m)", aspect = DataAspect())
+axis_kwargs = (xlabel = "x (m)", ylabel = "z (m)",
+               aspect = DataAspect()
+)
 
 ax_T = Axis(fig[2,1]; title = L"Temperature, $T$", axis_kwargs...)
-ax_s = Axis(fig[2,3]; title = L"Speed, $s = \sqrt{u^2+w^2}$", axis_kwargs...)
+ax_s = Axis(fig[3,1]; title = L"Speed, $s = \sqrt{u^2+v^2}$", axis_kwargs...)
+ax_avg_T = Axis(fig[4,1]; title = L"Average Temperature over $x$", xlabel = "T", ylabel = "z(m)")
 
 n = Observable(1)
 
 T = @lift T_timeseries[$n]
 s = @lift s_timeseries[$n]
+avg_T = @lift avg_T_timeseries[$n]
 
 Tlims = (minimum(abs, interior(T_timeseries)), maximum(abs, interior(T_timeseries)))
 slims = (minimum(abs, interior(s_timeseries)), maximum(abs, interior(s_timeseries)))
 
+xlims!(ax_avg_T, Tlims)
+
 hm_T = heatmap!(ax_T, T; colormap = :thermometer, colorrange = Tlims)
 Colorbar(fig[2,2], hm_T)
-
 hm_s = heatmap!(ax_s, s; colormap = :speed, colorrange = slims)
-Colorbar(fig[2,4], hm_s)
+Colorbar(fig[3,2], hm_s)
+lines!(ax_avg_T, avg_T)
 
 title = @lift "t = " * prettytime(times[$n])
-Label(fig[1, :], title, fontsize = 24, tellwidth=true)
+Label(fig[1, 1:2], title, fontsize = 24, tellwidth=true)
 
 #record movie
 frames = 1:length(times)
 @info "Making an animation..."
-record(fig, filename * ".mp4", frames, framerate=64) do i
+record(fig, filename * ".mp4", frames, framerate=16) do i
     n[] = i
 end
-
-#Save end image
-
-@info "Saving final frame..."
-save(filename * "_final.png", fig)
