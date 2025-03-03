@@ -13,48 +13,31 @@ filename = "./OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 64     # number of points in each of horizontal directions
-const Nz = 64          # number of points in the vertical direction
+const Nx = 128     # number of points in each of horizontal directions
+const Nz = 128          # number of points in the vertical direction
 
-const Lx = 1     # (m) domain horizontal extents
-const Lz = 1          # (m) domain depth
+const Lx = 8     # (m) domain horizontal extents
+const Lz = 8          # (m) domain depth
 
-grid = RectilinearGrid(CPU(); size = (Nx, Nz),
+grid = RectilinearGrid(GPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (0,Lz),
                        topology = (Bounded, Flat, Bounded)
 )
 
 # Buoyancy that depends on temperature:
-buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(thermal_expansion = 2e-4), constant_salinity=0)
+buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_salinity=0)
 
-const Δ = 1e-3
-const Γ = 1e-6
-#RB1
-T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
-#RB2
-#T_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(Γ), bottom = FluxBoundaryCondition(Γ))
-#RB3
-#T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(20), bottom = FluxBoundaryCondition(Γ))
-
+#Set values
+const R = 1707.76
+const Pr = 7.0
+const ν = 1.04e-6
+const κ = ν / Pr
 const g = buoyancy.gravitational_acceleration
 const α = buoyancy.equation_of_state.thermal_expansion
-#=
-const ν = 1e-3
-const κ = 1e-6
+const Δ = ν * κ * R / (g * α * Lz^3)
 
-const Ra = g * α * Δ * Lz^3 / (ν * κ)
-const Pr = ν/κ
-=#
-
-const Ra = 1e12
-const Pr = 1
-
-const ν = sqrt(g * α * Δ * Lz^3 / (Pr * Ra))
-const κ = sqrt(g * α * Δ * Lz^3 * Pr / Ra)
-
-
-@info "Ra = $Ra, Pr = $Pr, ν = $ν, κ = $κ"
+T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 
 closure = ScalarDiffusivity(ν=ν,κ=κ)
 
@@ -82,9 +65,9 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=30seconds, stop_time = 1day)
+simulation = Simulation(model, Δt=20seconds, stop_time = 60days)
 
-wizard = TimeStepWizard(cfl=1.1, max_Δt=2minutes)
+wizard = TimeStepWizard(cfl=1.1, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
 
 # Print a progress message
@@ -160,3 +143,21 @@ frames = 1:length(times)
 record(fig, filename * ".mp4", frames, framerate=16) do i
     n[] = i
 end
+
+#Plot veritcal flux
+@info"Plotting vertical flux"
+w_timeseries = FieldTimeSeries(filename * ".jld2", "w")
+
+fig = Figure(size = (800,800))
+
+ax = Axis(fig[1,1]; title = L"Vertical Flux, $w$", xlabel = "flux", ylabel = "z (m)")
+
+n = Observable(1)
+
+w = @lift w_timeseries[$n]
+
+wT = w .* T
+
+avg_wT = Average(wT, dims=(1, 2))
+
+lines!
