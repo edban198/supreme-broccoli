@@ -13,8 +13,8 @@ filename = "./OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 128     # number of points in each of horizontal directions
-const Nz = 128          # number of points in the vertical direction
+const Nx = 64     # number of points in each of horizontal directions
+const Nz = 64          # number of points in the vertical direction
 
 const Lx = 8     # (m) domain horizontal extents
 const Lz = 8          # (m) domain depth
@@ -29,7 +29,7 @@ grid = RectilinearGrid(GPU(); size = (Nx, Nz),
 buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_salinity=0)
 
 #Set values
-const R = 1707.76
+const R = 1707.76 * 1.01
 const Pr = 7.0
 const ν = 1.04e-6
 const κ = ν / Pr
@@ -54,7 +54,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
 Ξ(z) = randn()
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
-Tᵢ(x, z) = 0
+Tᵢ(x, z) = 1e-12 * Ξ(z)
 
 # Velocity initial condition:
 uᵢ(x, z) = 1e-6 * Ξ(z)
@@ -65,9 +65,9 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=20seconds, stop_time = 60days)
+simulation = Simulation(model, Δt=20seconds, stop_time = 30days)
 
-wizard = TimeStepWizard(cfl=1.1, max_Δt=30seconds)
+wizard = TimeStepWizard(cfl=1.1, max_Δt=2minutes)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
 
 # Print a progress message
@@ -80,20 +80,21 @@ progress_message(sim) = @printf("Iteration: %04d, time: %s, Δt: %s, max(|u|) = 
 add_callback!(simulation, progress_message, IterationInterval(100))
 
 # Output
-
-outputs = (T = model.tracers.T,
+# Define outputs to save w and T directly
+outputs = (
     w = model.velocities.w,
-    s = sqrt(model.velocities.u^2 + model.velocities.w^2),
-    avg_T = Average(model.tracers.T, dims=(1, 2))
+    T = model.tracers.T,
+    avg_T = mean(model.tracers.T, dims=(1,2)),
+    s = sqrt(model.velocities.u^2 + model.velocities.w^2)  # Optional
 )
 
 const data_interval = 2minutes
 
-simulation.output_writers[:simple_outputs] =
-    JLD2OutputWriter(model, outputs,
-                     schedule = TimeInterval(data_interval),
-                     filename = filename * ".jld2",
-                     overwrite_existing = true
+simulation.output_writers[:full_outputs] = JLD2OutputWriter(
+    model, outputs,
+    schedule = TimeInterval(data_interval),
+    filename = filename * ".jld2",
+    overwrite_existing = true
 )
 
 @info"Running the simulation..."
@@ -143,21 +144,43 @@ frames = 1:length(times)
 record(fig, filename * ".mp4", frames, framerate=16) do i
     n[] = i
 end
+#=
+@info "Plotting vertical flux"
 
-#Plot veritcal flux
-@info"Plotting vertical flux"
-w_timeseries = FieldTimeSeries(filename * ".jld2", "w")
+# Get dimensions from ACTUAL data
+w_sample = w_timeseries[1][:, 1, :]
+actual_Nz = size(T_timeseries[1], 3)  # z-cells in T
+actual_Nfaces = size(w_sample, 2)     # z-faces in w
 
-fig = Figure(size = (800,800))
+# Initialize based on ACTUAL dimensions
+wT_horiz_avg_time_accumulator = zeros(actual_Nfaces - 2)  # Interior faces
 
-ax = Axis(fig[1,1]; title = L"Vertical Flux, $w$", xlabel = "flux", ylabel = "z (m)")
+# Vertical coordinates using ACTUAL sizes
+zF = znodes(grid, Face()) |> collect
+z_plot = zF[2:end-1]  # Interior faces for plotting
 
-n = Observable(1)
+for (n, t) in enumerate(times)
+    w = w_timeseries[n][:, 1, :]        # [x, z] faces
+    T_current = T_timeseries[n][:, 1, :] # [x, z] centers
+    
+    # Interior faces only (exact slicing adapts to actual grid)
+    T_at_w_faces = 0.5*(T_current[:, 1:end-1] + T_current[:, 2:end])
+    w_interior = w[:, 2:end-1]
+    
+    # Dimension safeguard
+    @assert size(T_at_w_faces) == size(w_interior) "Mismatched flux dimensions"
+    
+    wT = w_interior .* T_at_w_faces
+    wT_horiz_avg = mean(wT, dims=1)
+    
+    wT_horiz_avg_time_accumulator .+= vec(wT_horiz_avg)
+end
 
-w = @lift w_timeseries[$n]
+wT_time_avg = wT_horiz_avg_time_accumulator / length(times)
 
-wT = w .* T
-
-avg_wT = Average(wT, dims=(1, 2))
-
-lines!
+# Plot with dynamically determined z-coordinates
+fig = Figure()
+ax = Axis(fig[1,1], xlabel="⟨wT⟩", ylabel="z (m)")
+lines!(ax, wT_time_avg, z_plot)
+savefig(filename * "_flux.png")
+=#
