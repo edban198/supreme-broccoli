@@ -29,7 +29,7 @@ grid = RectilinearGrid(GPU(); size = (Nx, Nz),
 buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_salinity=0)
 
 #Set values
-const R = 1707.76 * 1.01
+const R = 1707.76
 const Pr = 7.0
 const ν = 1.04e-6
 const κ = ν / Pr
@@ -45,6 +45,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:T),
                             closure = closure,
+                            coriolis = FPlane(f=k/Lz^2),
                             boundary_conditions = (; T=T_bcs)
 )
 
