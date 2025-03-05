@@ -13,8 +13,8 @@ filename = "./OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 64     # number of points in each of horizontal directions
-const Nz = 64          # number of points in the vertical direction
+const Nx = 128     # number of points in each of horizontal directions
+const Nz = 128          # number of points in the vertical direction
 
 const Lx = 8     # (m) domain horizontal extents
 const Lz = 8          # (m) domain depth
@@ -29,7 +29,7 @@ grid = RectilinearGrid(GPU(); size = (Nx, Nz),
 buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_salinity=0)
 
 #Set values
-const R = 1707.76 * 1.01
+const R = 1707.76
 const Pr = 7.0
 const ν = 1.04e-6
 const κ = ν / Pr
@@ -54,7 +54,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
 Ξ(z) = randn()
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
-Tᵢ(x, z) = 1e-12 * Ξ(z)
+Tᵢ(x, z) = Δ * (1 - z/Lz)
 
 # Velocity initial condition:
 uᵢ(x, z) = 1e-6 * Ξ(z)
