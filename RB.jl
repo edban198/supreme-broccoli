@@ -45,7 +45,6 @@ model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:T),
                             closure = closure,
-                            coriolis = FPlane(f=κ/Lz^2),
                             boundary_conditions = (; T=T_bcs)
 )
 
@@ -68,7 +67,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 simulation = Simulation(model, Δt=20seconds, stop_time = 30days)
 
-wizard = TimeStepWizard(cfl=1.1, max_Δt=2minutes)
+wizard = TimeStepWizard(cfl=1.1, max_Δt=5minutes)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
 
 # Print a progress message
