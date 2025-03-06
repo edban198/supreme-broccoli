@@ -41,10 +41,13 @@ T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueB
 
 closure = ScalarDiffusivity(ν=ν,κ=κ)
 
+const f = 10 * κ / Lz^2
+
 model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:T),
                             closure = closure,
+                            coriolis = FPlane(f=f),
                             boundary_conditions = (; T=T_bcs)
 )
 
