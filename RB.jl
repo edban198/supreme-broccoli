@@ -45,7 +45,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:T),
                             closure = closure,
-                            coriolis = FPlane(f=k/Lz^2),
+                            coriolis = FPlane(f=κ/Lz^2),
                             boundary_conditions = (; T=T_bcs)
 )
 
