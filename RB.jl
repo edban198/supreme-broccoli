@@ -31,7 +31,7 @@ buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_
 #Set values
 const R = 1707.76
 const Pr = 7.0
-const ν = 1.04e-3
+const ν = 1.04e-5
 const κ = ν / Pr
 const g = buoyancy.gravitational_acceleration
 const α = buoyancy.equation_of_state.thermal_expansion
@@ -65,9 +65,9 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=20seconds, stop_time = 30days)
+simulation = Simulation(model, Δt=10seconds, stop_time = 30days)
 
-wizard = TimeStepWizard(cfl=1.1, max_Δt=2minutes)
+wizard = TimeStepWizard(cfl=1.1, max_Δt=20seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
 
 # Print a progress message
