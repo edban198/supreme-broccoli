@@ -19,7 +19,7 @@ const Nz = 32          # number of points in the vertical direction
 const Lx = 32     # (m) domain horizontal extents
 const Lz = 8          # (m) domain depth
 
-grid = RectilinearGrid(CPU(); size = (Nx, Nz),
+grid = RectilinearGrid(GPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (0,Lz),
                        topology = (Bounded, Flat, Bounded)
