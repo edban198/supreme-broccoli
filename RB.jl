@@ -13,10 +13,10 @@ filename = "./OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 128     # number of points in each of horizontal directions
-const Nz = 64          # number of points in the vertical direction
+const Nx = 64     # number of points in each of horizontal directions
+const Nz = 32          # number of points in the vertical direction
 
-const Lx = 16     # (m) domain horizontal extents
+const Lx = 32     # (m) domain horizontal extents
 const Lz = 8          # (m) domain depth
 
 grid = RectilinearGrid(CPU(); size = (Nx, Nz),
@@ -29,13 +29,13 @@ grid = RectilinearGrid(CPU(); size = (Nx, Nz),
 buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_salinity=0)
 
 #Set values
-const R = 1707.76 * 5
+const R = 657.5 * 1000000
 const Pr = 7.0
 const ν = 1.04e-5
 const κ = ν / Pr
 const g = buoyancy.gravitational_acceleration
 const α = buoyancy.equation_of_state.thermal_expansion
-const Δ = ν * κ * R / (g * α * Lz^3)
+const Δ = ν * κ * R / (g * α * Lz^3) 
 
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 
@@ -47,7 +47,6 @@ model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:T),
                             closure = closure,
-                            coriolis = FPlane(f=f),
                             boundary_conditions = (; T=T_bcs)
 )
 
@@ -68,7 +67,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=10seconds, stop_time = 2days)
+simulation = Simulation(model, Δt=10seconds, stop_time = 1day)
 
 wizard = TimeStepWizard(cfl=1.1, max_Δt=2minutes)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
@@ -88,7 +87,7 @@ outputs = (
     w = model.velocities.w,
     T = model.tracers.T,
     avg_T = mean(model.tracers.T, dims=(1,2)),
-    s = sqrt(model.velocities.u^2 + model.velocities.w^2)  # Optional
+    s = sqrt(model.velocities.u^2 + model.velocities.w^2)
 )
 
 const data_interval = 2minutes
@@ -111,7 +110,7 @@ times = T_timeseries.times
 
 set_theme!(Theme(fontsize = 24))
 
-fig = Figure(size = (1600, 1800))
+fig = Figure(size = (3200, 1600))
 
 axis_kwargs = (xlabel = "x (m)", ylabel = "z (m)",
                aspect = DataAspect()
@@ -125,7 +124,7 @@ n = Observable(1)
 
 T = @lift T_timeseries[$n]
 s = @lift s_timeseries[$n]
-avg_T = @lift avg_T_timeseries[$n]
+avg_T = @lift vec(dropdims(avg_T_timeseries[$n][:, :, 1:Nz], dims=(1,2)))
 
 Tlims = (minimum(abs, interior(T_timeseries)), maximum(abs, interior(T_timeseries)))
 slims = (minimum(abs, interior(s_timeseries)), maximum(abs, interior(s_timeseries)))
@@ -149,9 +148,17 @@ wT_timeseries = w_center_timeseries .* T_timeseries
 
 wT_avg_timeseries = mean(wT_timeseries, dims=(1,2))
 
-ax_wT = Axis(fig[3,3]; title = L"Vertical Heat Flux, $wT$")
+wT_avg = @lift vec(dropdims(wT_avg_timeseries[:, :, :, $n], dims=(1,2)))
 
-lines!(ax_wT, wT_avg_timeseries, xlabel = "wT", ylabel = "z(m)")
+ax_wT = Axis(fig[3,3];
+    title = L"Vertical Heat Flux, $wT$",
+    xlabel = "wT", ylabel = "z (m)"
+)
+wTlims = (minimum(wT_avg_timeseries), maximum(wT_avg_timeseries))
+xlims!(ax_wT, wTlims)
+ylims!(ax_wT, 0, Lz)
+
+lines!(ax_wT, wT_avg)
 
 title = @lift "t = " * prettytime(times[$n])
 Label(fig[1, 1:2], title, fontsize = 24, tellwidth=true)
@@ -167,6 +174,19 @@ end
 
 avg_wT = mean(wT_timeseries)
 
-Nu = 1 + Lz * avg_wT / (κ * Δ)
+avged_wT = Lz * avg_wT / (κ * Δ)
 
-@info "Nusselt number: $Nu"
+@info "⟨wT⟩ = $avged_wT"
+
+wT_avg_timeseries_2 = mean(wT_timeseries, dims=(1,2,3))
+
+Nu_timeseries = @. 1 + Lz * wT_avg_timeseries_2 / (κ * Δ)
+
+# Create figure for Nusselt number vs time
+fig_Nu = Figure(size = (1200, 600))
+ax_Nu = Axis(fig_Nu[1, 1];
+    title = "Nusselt Number vs Time",
+    xlabel = "Time (days)", ylabel = "Nusselt Number"
+)
+
+lines!(ax_Nu, times, Nu_timeseries)
