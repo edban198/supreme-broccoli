@@ -29,7 +29,7 @@ grid = RectilinearGrid(CPU(); size = (Nx, Nz),
 buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_salinity=0)
 
 #Set values
-const R = 657.5 * 1000000
+const R = 657.5 * 1e7
 const Pr = 7.0
 const ν = 1.04e-5
 const κ = ν / Pr
@@ -56,7 +56,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
 Ξ(z) = randn()
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
-Tᵢ(x, z) = Δ * (1 - z/Lz)
+Tᵢ(x, z) = 0 #Δ * (1 - z/Lz)
 
 # Velocity initial condition:
 uᵢ(x, z) = 1e-6 * Ξ(z)
@@ -67,7 +67,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=10seconds, stop_time = 1day)
+simulation = Simulation(model, Δt=10seconds, stop_time = 20days)
 
 wizard = TimeStepWizard(cfl=1.1, max_Δt=2minutes)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
@@ -124,18 +124,20 @@ n = Observable(1)
 
 T = @lift T_timeseries[$n]
 s = @lift s_timeseries[$n]
-avg_T = @lift vec(dropdims(avg_T_timeseries[$n][:, :, 1:Nz], dims=(1,2)))
+avg_T = @lift vec(dropdims(avg_T_timeseries[:, :, :, $n], dims=(1,2)))
 
 Tlims = (minimum(abs, interior(T_timeseries)), maximum(abs, interior(T_timeseries)))
 slims = (minimum(abs, interior(s_timeseries)), maximum(abs, interior(s_timeseries)))
 
 xlims!(ax_avg_T, Tlims)
+ylims!(ax_avg_T, 0, Lz)
+z_vec = LinRange(0, Lz, Nz)
+lines!(ax_avg_T, z_vec, avg_T, color=:red)
 
 hm_T = heatmap!(ax_T, T; colormap = :thermometer, colorrange = Tlims)
 Colorbar(fig[2,2], hm_T)
 hm_s = heatmap!(ax_s, s; colormap = :speed, colorrange = slims)
 Colorbar(fig[3,2], hm_s)
-lines!(ax_avg_T, avg_T)
 
 w_timeseries = FieldTimeSeries(filename * ".jld2", "w")
 
@@ -146,19 +148,20 @@ w_center_timeseries = 0.5 .* (
 
 wT_timeseries = w_center_timeseries .* T_timeseries
 
-wT_avg_timeseries = mean(wT_timeseries, dims=(1,2))
+wT_avg_timeseries = mean(wT_timeseries, dims=(1))
 
 wT_avg = @lift vec(dropdims(wT_avg_timeseries[:, :, :, $n], dims=(1,2)))
 
 ax_wT = Axis(fig[3,3];
-    title = L"Vertical Heat Flux, $wT$",
+    title = L"Vertical Heat Flux, $wT$ (averaged over $x$)",
     xlabel = "wT", ylabel = "z (m)"
 )
+
 wTlims = (minimum(wT_avg_timeseries), maximum(wT_avg_timeseries))
 xlims!(ax_wT, wTlims)
 ylims!(ax_wT, 0, Lz)
 
-lines!(ax_wT, wT_avg)
+lines!(ax_wT, z_vec, wT_avg, color=:red)
 
 title = @lift "t = " * prettytime(times[$n])
 Label(fig[1, 1:2], title, fontsize = 24, tellwidth=true)
@@ -169,7 +172,7 @@ frames = 1:length(times)
 record(fig, filename * ".mp4", frames, framerate=16) do i
     n[] = i
 end
-
+#=
 #Nusselt num
 
 avg_wT = mean(wT_timeseries)
@@ -177,10 +180,9 @@ avg_wT = mean(wT_timeseries)
 avged_wT = Lz * avg_wT / (κ * Δ)
 
 @info "⟨wT⟩ = $avged_wT"
-
-wT_avg_timeseries_2 = mean(wT_timeseries, dims=(1,2,3))
-
-Nu_timeseries = @. 1 + Lz * wT_avg_timeseries_2 / (κ * Δ)
+=#
+# Compute mean wT over x, y, z
+wT_avg_timeseries_2 = mean(wT_timeseries, dims=(1,2,3))  
 
 # Create figure for Nusselt number vs time
 fig_Nu = Figure(size = (1200, 600))
@@ -189,4 +191,14 @@ ax_Nu = Axis(fig_Nu[1, 1];
     xlabel = "Time (days)", ylabel = "Nusselt Number"
 )
 
-lines!(ax_Nu, times, Nu_timeseries)
+Nu = @lift 1 .+ vec(dropdims(wT_avg_timeseries_2[:, :, :, $n], dims=(3)))
+
+Nulims = (minimum(wT_avg_timeseries_2)+1, maximum(wT_avg_timeseries_2)+1)
+ylims!(ax_Nu, Nulims)
+
+# Plot Nusselt number vs time
+times_days = times ./ days
+lines!(ax_Nu, times_days, Nu)
+
+# Save figure
+save("./OUTPUTS/Nusselt_number_vs_time.png", fig_Nu)
