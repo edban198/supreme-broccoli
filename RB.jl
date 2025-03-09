@@ -19,7 +19,7 @@ const Nz = 64          # number of points in the vertical direction
 const Lx = 16     # (m) domain horizontal extents
 const Lz = 8          # (m) domain depth
 
-grid = RectilinearGrid(GPU(); size = (Nx, Nz),
+grid = RectilinearGrid(CPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (0,Lz),
                        topology = (Bounded, Flat, Bounded)
@@ -68,7 +68,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=10seconds, stop_time = 60days)
+simulation = Simulation(model, Δt=10seconds, stop_time = 2days)
 
 wizard = TimeStepWizard(cfl=1.1, max_Δt=2minutes)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
@@ -111,7 +111,7 @@ times = T_timeseries.times
 
 set_theme!(Theme(fontsize = 24))
 
-fig = Figure(size = (800,1800))
+fig = Figure(size = (1600, 1800))
 
 axis_kwargs = (xlabel = "x (m)", ylabel = "z (m)",
                aspect = DataAspect()
@@ -119,7 +119,7 @@ axis_kwargs = (xlabel = "x (m)", ylabel = "z (m)",
 
 ax_T = Axis(fig[2,1]; title = L"Temperature, $T$", axis_kwargs...)
 ax_s = Axis(fig[3,1]; title = L"Speed, $s = \sqrt{u^2+v^2}$", axis_kwargs...)
-ax_avg_T = Axis(fig[4,1]; title = L"Average Temperature over $x$", xlabel = "T", ylabel = "z(m)")
+ax_avg_T = Axis(fig[2,3]; title = L"Average Temperature over $x$", xlabel = "T", ylabel = "z(m)")
 
 n = Observable(1)
 
@@ -138,6 +138,21 @@ hm_s = heatmap!(ax_s, s; colormap = :speed, colorrange = slims)
 Colorbar(fig[3,2], hm_s)
 lines!(ax_avg_T, avg_T)
 
+w_timeseries = FieldTimeSeries(filename * ".jld2", "w")
+
+zrange = axes(w_timeseries, 3)  # the actual valid indices in the 3rd dimension
+w_center_timeseries = 0.5 .* (
+    w_timeseries[:, :, zrange[1:end-1], :] .+ w_timeseries[:, :, zrange[2:end], :]
+)
+
+wT_timeseries = w_center_timeseries .* T_timeseries
+
+wT_avg_timeseries = mean(wT_timeseries, dims=(1,2))
+
+ax_wT = Axis(fig[3,3]; title = L"Vertical Heat Flux, $wT$")
+
+lines!(ax_wT, wT_avg_timeseries, xlabel = "wT", ylabel = "z(m)")
+
 title = @lift "t = " * prettytime(times[$n])
 Label(fig[1, 1:2], title, fontsize = 24, tellwidth=true)
 
@@ -147,43 +162,11 @@ frames = 1:length(times)
 record(fig, filename * ".mp4", frames, framerate=16) do i
     n[] = i
 end
-#=
-@info "Plotting vertical flux"
 
-# Get dimensions from ACTUAL data
-w_sample = w_timeseries[1][:, 1, :]
-actual_Nz = size(T_timeseries[1], 3)  # z-cells in T
-actual_Nfaces = size(w_sample, 2)     # z-faces in w
+#Nusselt num
 
-# Initialize based on ACTUAL dimensions
-wT_horiz_avg_time_accumulator = zeros(actual_Nfaces - 2)  # Interior faces
+avg_wT = mean(wT_timeseries)
 
-# Vertical coordinates using ACTUAL sizes
-zF = znodes(grid, Face()) |> collect
-z_plot = zF[2:end-1]  # Interior faces for plotting
+Nu = 1 + Lz * avg_wT / (κ * Δ)
 
-for (n, t) in enumerate(times)
-    w = w_timeseries[n][:, 1, :]        # [x, z] faces
-    T_current = T_timeseries[n][:, 1, :] # [x, z] centers
-    
-    # Interior faces only (exact slicing adapts to actual grid)
-    T_at_w_faces = 0.5*(T_current[:, 1:end-1] + T_current[:, 2:end])
-    w_interior = w[:, 2:end-1]
-    
-    # Dimension safeguard
-    @assert size(T_at_w_faces) == size(w_interior) "Mismatched flux dimensions"
-    
-    wT = w_interior .* T_at_w_faces
-    wT_horiz_avg = mean(wT, dims=1)
-    
-    wT_horiz_avg_time_accumulator .+= vec(wT_horiz_avg)
-end
-
-wT_time_avg = wT_horiz_avg_time_accumulator / length(times)
-
-# Plot with dynamically determined z-coordinates
-fig = Figure()
-ax = Axis(fig[1,1], xlabel="⟨wT⟩", ylabel="z (m)")
-lines!(ax, wT_time_avg, z_plot)
-savefig(filename * "_flux.png")
-=#
+@info "Nusselt number: $Nu"
