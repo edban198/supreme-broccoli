@@ -29,7 +29,7 @@ grid = RectilinearGrid(GPU(); size = (Nx, Nz),
 buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_salinity=0)
 
 #Set values
-const R = 657.5 * 1e7
+const R = 657.5
 const Pr = 7.0
 const ν = 1.04e-5
 const κ = ν / Pr
@@ -56,7 +56,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
 Ξ(z) = randn()
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
-Tᵢ(x, z) = 0 #Δ * (1 - z/Lz)
+Tᵢ(x, z) = Δ * (1 - z/Lz)
 
 # Velocity initial condition:
 uᵢ(x, z) = 1e-6 * Ξ(z)
