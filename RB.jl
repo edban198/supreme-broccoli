@@ -14,9 +14,9 @@ filename = "./OUTPUTS/RB_gpu_simulation"
 @info"Setting up model"
 
 const Nx = 128     # number of points in each of horizontal directions
-const Nz = 128          # number of points in the vertical direction
+const Nz = 64          # number of points in the vertical direction
 
-const Lx = 8     # (m) domain horizontal extents
+const Lx = 16     # (m) domain horizontal extents
 const Lz = 8          # (m) domain depth
 
 grid = RectilinearGrid(GPU(); size = (Nx, Nz),
@@ -29,7 +29,7 @@ grid = RectilinearGrid(GPU(); size = (Nx, Nz),
 buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_salinity=0)
 
 #Set values
-const R = 1707.76 * 10
+const R = 1707.76 * 5
 const Pr = 7.0
 const ν = 1.04e-5
 const κ = ν / Pr
@@ -67,9 +67,9 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=10seconds, stop_time = 30days)
+simulation = Simulation(model, Δt=10seconds, stop_time = 60days)
 
-wizard = TimeStepWizard(cfl=1.1, max_Δt=20seconds)
+wizard = TimeStepWizard(cfl=1.1, max_Δt=2minutes)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
 
 # Print a progress message
