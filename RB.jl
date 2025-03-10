@@ -19,7 +19,7 @@ const Nz = 32          # number of points in the vertical direction
 const Lx = 32     # (m) domain horizontal extents
 const Lz = 8          # (m) domain depth
 
-grid = RectilinearGrid(CPU(); size = (Nx, Nz),
+grid = RectilinearGrid(GPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (0,Lz),
                        topology = (Bounded, Flat, Bounded)
@@ -68,7 +68,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=10seconds, stop_time = 1day)
+simulation = Simulation(model, Δt=10seconds, stop_time = 60days)
 
 wizard = TimeStepWizard(cfl=1.1, max_Δt=2minutes)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
@@ -142,8 +142,6 @@ Colorbar(fig[3,2], hm_s)
 #=
 using Interpolations
 
-w_timeseries = FieldTimeSeries(filename * ".jld2", "w")
-
 zrange = axes(w_timeseries, 3)  # the actual valid indices in the 3rd dimension
 w_center_timeseries = 0.5 .* (
     w_timeseries[:, :, zrange[1:end-1], :] .+ w_timeseries[:, :, zrange[2:end], :]
@@ -183,6 +181,8 @@ zrange = axes(w_timeseries, 3)  # the actual valid indices in the 3rd dimension
 w_center_timeseries = 0.5 .* (
     w_timeseries[:, :, zrange[1:end-1], :] .+ w_timeseries[:, :, zrange[2:end], :]
 )
+
+wT_timeseries = w_center_timeseries .* T_timeseries
 
 avg_wT = mean(wT_timeseries)
 
