@@ -19,7 +19,7 @@ const Nz = 32          # number of points in the vertical direction
 const Lx = 32     # (m) domain horizontal extents
 const Lz = 8          # (m) domain depth
 
-grid = RectilinearGrid(GPU(); size = (Nx, Nz),
+grid = RectilinearGrid(CPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (0,Lz),
                        topology = (Bounded, Flat, Bounded)
@@ -29,7 +29,7 @@ grid = RectilinearGrid(GPU(); size = (Nx, Nz),
 buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_salinity=0)
 
 #Set values
-const R = 657.5
+const R = 657.5 * 2
 const Pr = 7.0
 const ν = 1.04e-5
 const κ = ν / Pr
@@ -47,6 +47,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:T),
                             closure = closure,
+                            coriolis = FPlane(f=f),
                             boundary_conditions = (; T=T_bcs)
 )
 
@@ -67,7 +68,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=10seconds, stop_time = 60days)
+simulation = Simulation(model, Δt=10seconds, stop_time = 1day)
 
 wizard = TimeStepWizard(cfl=1.1, max_Δt=2minutes)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
@@ -86,7 +87,7 @@ add_callback!(simulation, progress_message, IterationInterval(100))
 outputs = (
     w = model.velocities.w,
     T = model.tracers.T,
-    avg_T = mean(model.tracers.T, dims=(1,2)),
+    #avg_T = mean(model.tracers.T, dims=(1,2)),
     s = sqrt(model.velocities.u^2 + model.velocities.w^2)
 )
 
@@ -105,12 +106,12 @@ run!(simulation)
 
 T_timeseries = FieldTimeSeries(filename * ".jld2", "T")
 s_timeseries = FieldTimeSeries(filename * ".jld2", "s")
-avg_T_timeseries = FieldTimeSeries(filename * ".jld2", "avg_T")
+#avg_T_timeseries = FieldTimeSeries(filename * ".jld2", "avg_T")
 times = T_timeseries.times
 
 set_theme!(Theme(fontsize = 24))
 
-fig = Figure(size = (3200, 1600))
+fig = Figure(size = (1600,1000))
 
 axis_kwargs = (xlabel = "x (m)", ylabel = "z (m)",
                aspect = DataAspect()
@@ -118,26 +119,28 @@ axis_kwargs = (xlabel = "x (m)", ylabel = "z (m)",
 
 ax_T = Axis(fig[2,1]; title = L"Temperature, $T$", axis_kwargs...)
 ax_s = Axis(fig[3,1]; title = L"Speed, $s = \sqrt{u^2+v^2}$", axis_kwargs...)
-ax_avg_T = Axis(fig[2,3]; title = L"Average Temperature over $x$", xlabel = "T", ylabel = "z(m)")
+#ax_avg_T = Axis(fig[2,3]; title = L"Average Temperature over $x$", xlabel = "T", ylabel = "z(m)")
 
 n = Observable(1)
 
 T = @lift T_timeseries[$n]
 s = @lift s_timeseries[$n]
-avg_T = @lift vec(dropdims(avg_T_timeseries[:, :, :, $n], dims=(1,2)))
+#avg_T = @lift vec(dropdims(avg_T_timeseries[:, :, :, $n], dims=(1,2)))
 
 Tlims = (minimum(abs, interior(T_timeseries)), maximum(abs, interior(T_timeseries)))
 slims = (minimum(abs, interior(s_timeseries)), maximum(abs, interior(s_timeseries)))
-
+#=
 xlims!(ax_avg_T, Tlims)
 ylims!(ax_avg_T, 0, Lz)
 z_vec = LinRange(0, Lz, Nz)
-lines!(ax_avg_T, z_vec, avg_T, color=:red)
-
+lines!(ax_avg_Tavg_T, color=:red)
+=#
 hm_T = heatmap!(ax_T, T; colormap = :thermometer, colorrange = Tlims)
 Colorbar(fig[2,2], hm_T)
 hm_s = heatmap!(ax_s, s; colormap = :speed, colorrange = slims)
 Colorbar(fig[3,2], hm_s)
+#=
+using Interpolations
 
 w_timeseries = FieldTimeSeries(filename * ".jld2", "w")
 
@@ -161,10 +164,10 @@ wTlims = (minimum(wT_avg_timeseries), maximum(wT_avg_timeseries))
 xlims!(ax_wT, wTlims)
 ylims!(ax_wT, 0, Lz)
 
-lines!(ax_wT, z_vec, wT_avg, color=:red)
-
+lines!(ax_wT, wT_avg, color=:red)
+=#
 title = @lift "t = " * prettytime(times[$n])
-Label(fig[1, 1:2], title, fontsize = 24, tellwidth=true)
+Label(fig[1, :], title, fontsize = 24, tellwidth=true)
 
 #record movie
 frames = 1:length(times)
@@ -172,15 +175,22 @@ frames = 1:length(times)
 record(fig, filename * ".mp4", frames, framerate=16) do i
     n[] = i
 end
-#=
+
+@info "calculating Nusselt number"
 #Nusselt num
+w_timeseries = FieldTimeSeries(filename * ".jld2", "w")
+zrange = axes(w_timeseries, 3)  # the actual valid indices in the 3rd dimension
+w_center_timeseries = 0.5 .* (
+    w_timeseries[:, :, zrange[1:end-1], :] .+ w_timeseries[:, :, zrange[2:end], :]
+)
 
 avg_wT = mean(wT_timeseries)
 
-avged_wT = Lz * avg_wT / (κ * Δ)
+Nu = 1 + avg_wT
 
-@info "⟨wT⟩ = $avged_wT"
-=#
+@info "Nu = $Nu"
+
+#=
 # Compute mean wT over x, y, z
 wT_avg_timeseries_2 = mean(wT_timeseries, dims=(1,2,3))  
 
@@ -191,7 +201,7 @@ ax_Nu = Axis(fig_Nu[1, 1];
     xlabel = "Time (days)", ylabel = "Nusselt Number"
 )
 
-Nu = @lift 1 .+ vec(dropdims(wT_avg_timeseries_2[:, :, :, $n], dims=(3)))
+Nu = @lift 1 .+ Lz .* vec(dropdims(wT_avg_timeseries_2[:, :, :, $n], dims=(3))) ./ (κ * Δ)
 
 Nulims = (minimum(wT_avg_timeseries_2)+1, maximum(wT_avg_timeseries_2)+1)
 ylims!(ax_Nu, Nulims)
@@ -202,3 +212,4 @@ lines!(ax_Nu, times_days, Nu)
 
 # Save figure
 save("./OUTPUTS/Nusselt_number_vs_time.png", fig_Nu)
+=#

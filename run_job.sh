@@ -14,6 +14,9 @@
 
 #SBATCH --job-name=RB_gpu_simulation
 
+#SBATCH -o jobname_%j.out
+#SBATCH -e jobname_%j.err
+
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user sfbj55@durham.ac.uk
 
