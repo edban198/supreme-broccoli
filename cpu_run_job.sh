@@ -5,12 +5,12 @@
 #cores in each node.
 # X,Y are integers. Refer to table for various combinations
 #SBATCH -N 1
-#SBATCH -c 32
+#SBATCH -c 64
 #SBATCH -p cpu
 #SBATCH --qos=short
 #SBATCH -t 18:00:00
 
-#SBATCH --job-name=cpu_wind_sim
+#SBATCH --job-name=RB_plotting
 
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user sfbj55@durham.ac.uk
@@ -18,4 +18,4 @@
 # Run the program
 cd
 
-./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/inertial_wave.jl
+./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/RB_plots.jl
