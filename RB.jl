@@ -19,7 +19,7 @@ const Nz = 32          # number of points in the vertical direction
 const Lx = 32     # (m) domain horizontal extents
 const Lz = 8          # (m) domain depth
 
-grid = RectilinearGrid(GPU(); size = (Nx, Nz),
+grid = RectilinearGrid(CPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (0,Lz),
                        topology = (Bounded, Flat, Bounded)
@@ -39,6 +39,9 @@ const Δ = ν * κ * R / (g * α * Lz^3)
 
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 
+τx = -1e-6
+u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
+
 closure = ScalarDiffusivity(ν=ν,κ=κ)
 
 const f = 10 * κ / Lz^2
@@ -47,8 +50,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:T),
                             closure = closure,
-                            coriolis = FPlane(f=f),
-                            boundary_conditions = (; T=T_bcs)
+                            boundary_conditions = (; T=T_bcs, u=u_bcs)
 )
 
 # Initial conditions
