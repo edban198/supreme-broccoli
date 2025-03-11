@@ -19,7 +19,7 @@ const Nz = 32          # number of points in the vertical direction
 const Lx = 32     # (m) domain horizontal extents
 const Lz = 8          # (m) domain depth
 
-grid = RectilinearGrid(CPU(); size = (Nx, Nz),
+grid = RectilinearGrid(GPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (0,Lz),
                        topology = (Bounded, Flat, Bounded)
@@ -70,9 +70,9 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=10seconds, stop_time = 10days)
+simulation = Simulation(model, Δt=1minute, stop_time = 10days)
 
-wizard = TimeStepWizard(cfl=1.1, max_Δt=2minutes)
+wizard = TimeStepWizard(cfl=1.1, max_Δt=20minutes)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
 
 # Print a progress message
@@ -175,7 +175,7 @@ frames = 1:length(times)
 record(fig, filename * ".mp4", frames, framerate=16) do i
     n[] = i
 end
-#=
+
 @info "calculating Nusselt number"
 #Nusselt num
 w_timeseries = FieldTimeSeries(filename * ".jld2", "w")
@@ -191,7 +191,7 @@ avg_wT = mean(wT_timeseries)
 Nu = 1 + avg_wT
 
 @info "Nu = $Nu"
-=#
+
 #=
 # Compute mean wT over x, y, z
 wT_avg_timeseries_2 = mean(wT_timeseries, dims=(1,2,3))  
