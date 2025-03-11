@@ -50,7 +50,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:T),
                             closure = closure,
-                            boundary_conditions = (; T=T_bcs, u=u_bcs)
+                            boundary_conditions = (; T=T_bcs)
 )
 
 # Initial conditions
@@ -70,7 +70,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=10seconds, stop_time = 60days)
+simulation = Simulation(model, Δt=10seconds, stop_time = 10days)
 
 wizard = TimeStepWizard(cfl=1.1, max_Δt=2minutes)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
@@ -175,7 +175,7 @@ frames = 1:length(times)
 record(fig, filename * ".mp4", frames, framerate=16) do i
     n[] = i
 end
-
+#=
 @info "calculating Nusselt number"
 #Nusselt num
 w_timeseries = FieldTimeSeries(filename * ".jld2", "w")
@@ -191,7 +191,7 @@ avg_wT = mean(wT_timeseries)
 Nu = 1 + avg_wT
 
 @info "Nu = $Nu"
-
+=#
 #=
 # Compute mean wT over x, y, z
 wT_avg_timeseries_2 = mean(wT_timeseries, dims=(1,2,3))  
