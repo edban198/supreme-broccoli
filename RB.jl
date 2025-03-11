@@ -19,7 +19,7 @@ const Nz = 32          # number of points in the vertical direction
 const Lx = 32     # (m) domain horizontal extents
 const Lz = 8          # (m) domain depth
 
-grid = RectilinearGrid(CPU(); size = (Nx, Nz),
+grid = RectilinearGrid(GPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (0,Lz),
                        topology = (Bounded, Flat, Bounded)
@@ -70,7 +70,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=1minute, stop_time = 1hour)
+simulation = Simulation(model, Δt=1minute, stop_time = 60days)
 
 wizard = TimeStepWizard(cfl=1.1, max_Δt=20minutes)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
