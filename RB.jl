@@ -70,9 +70,9 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=1minute, stop_time = 60days)
+simulation = Simulation(model, Δt=10minutes, stop_time = 60days)
 
-wizard = TimeStepWizard(cfl=1.1, max_Δt=20minutes)
+wizard = TimeStepWizard(cfl=1.1, max_Δt=1hour)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
 
 # Print a progress message
@@ -182,7 +182,7 @@ Nu = 1 + avg_wT
 
 @info "Nu = $Nu"
 
-title = @lift "t = " * prettytime(times[$n]) * ", Nu = $Nu"
+title = @lift "t = " * prettytime(times[$n]) * ", Nu = " * string(round(Nu, digits=3))
 Label(fig[1, :], title, fontsize = 24, tellwidth=true)
 
 #record movie
