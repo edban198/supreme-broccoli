@@ -62,7 +62,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
 Ξ(x,z) = randn()
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
-Tᵢ(x, z) = Δ * (1 - z/Lz)
+Tᵢ(x, z) = 0#Δ * (1 - z/Lz)
 
 # Velocity initial condition:
 uᵢ(x, z) = 1e-6 * Ξ(x,z)
