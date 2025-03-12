@@ -13,8 +13,8 @@ filename = "./OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 32     # number of points in each of horizontal directions
-const Nz = 16          # number of points in the vertical direction
+const Nx = 64     # number of points in each of horizontal directions
+const Nz = 32          # number of points in the vertical direction
 
 const Lx = 32     # (m) domain horizontal extents
 const Lz = 8          # (m) domain depth
@@ -73,7 +73,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=30seconds, stop_time = 30days)
+simulation = Simulation(model, Δt=30seconds, stop_time = 80days)
 
 wizard = TimeStepWizard(cfl=1.1, max_Δt=10minutes)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
@@ -86,10 +86,10 @@ progress_message(sim) = @printf("Iteration: %04d, time: %s, Δt: %s, max(|u|) = 
 )
 
 add_callback!(simulation, progress_message, IterationInterval(100))
-#=
+
 @info "running sim..."
 run!(simulation)
-=#
+
 
 # OUTPUTS
 outputs = (
@@ -107,10 +107,10 @@ simulation.output_writers[:full_outputs] = JLD2OutputWriter(
     filename = filename * ".jld2",
     overwrite_existing = true
 )
-#=
+
 @info"Restarting the simulation..."
-simulation.stop_time = 80days
-=#
+simulation.stop_time = 100days
+
 run!(simulation)
 @info"Plotting animation"
 
@@ -190,7 +190,7 @@ Nu = 1 + avg_wT
 
 @info "Nu = $Nu"
 
-title = @lift "t = " * prettytime(times[$n]) * ", Nu = " * string(round(Nu, digits=3))
+title = @lift "t = " * prettytime(times[$n]) * ", Nu = " * string(round(Nu, digits=8))
 Label(fig[1, :], title, fontsize = 24, tellwidth=true)
 
 #record movie
