@@ -13,16 +13,16 @@ filename = "./OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 64     # number of points in each of horizontal directions
-const Nz = 32          # number of points in the vertical direction
+const Nx = 32     # number of points in each of horizontal directions
+const Nz = 16          # number of points in the vertical direction
 
 const Lx = 32     # (m) domain horizontal extents
 const Lz = 8          # (m) domain depth
 
-grid = RectilinearGrid(GPU(); size = (Nx, Nz),
+grid = RectilinearGrid(CPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (0,Lz),
-                       topology = (Bounded, Flat, Bounded)
+                       topology = (Periodic, Flat, Bounded)
 )
 
 # Buoyancy that depends on temperature:
@@ -31,11 +31,14 @@ buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_
 #Set values
 const R = 657.5 * 2
 const Pr = 7.0
-const ν = 1.04e-5
+const ν = 1.04e-4
 const κ = ν / Pr
 const g = buoyancy.gravitational_acceleration
 const α = buoyancy.equation_of_state.thermal_expansion
 const Δ = ν * κ * R / (g * α * Lz^3) 
+t_ff = sqrt(Lz / (g * α * Δ))
+t_ff_days = t_ff / (3600 * 24)
+@info "Freefall time in days ~ $t_ff_days"
 
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 
@@ -50,19 +53,19 @@ model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:T),
                             closure = closure,
-                            boundary_conditions = (; T=T_bcs)
+                            boundary_conditions = (; T=T_bcs, u_bcs)
 )
 
 # Initial conditions
 
 # Random noise
-Ξ(z) = randn()
+Ξ(x,z) = randn()
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
 Tᵢ(x, z) = Δ * (1 - z/Lz)
 
 # Velocity initial condition:
-uᵢ(x, z) = 1e-6 * Ξ(z)
+uᵢ(x, z) = 1e-6 * Ξ(x,z)
 #uᵢ(x, z) = 0
 
 # set the model fields using functions or constants:
@@ -70,7 +73,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=10minutes, stop_time = 60days)
+simulation = Simulation(model, Δt=10minutes, stop_time = 10days)
 
 wizard = TimeStepWizard(cfl=1.1, max_Δt=1hour)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
@@ -83,9 +86,12 @@ progress_message(sim) = @printf("Iteration: %04d, time: %s, Δt: %s, max(|u|) = 
 )
 
 add_callback!(simulation, progress_message, IterationInterval(100))
+#=
+@info "running sim..."
+run!(simulation)
+=#
 
-# Output
-# Define outputs to save w and T directly
+# OUTPUTS
 outputs = (
     w = model.velocities.w,
     T = model.tracers.T,
@@ -101,8 +107,10 @@ simulation.output_writers[:full_outputs] = JLD2OutputWriter(
     filename = filename * ".jld2",
     overwrite_existing = true
 )
-
-@info"Running the simulation..."
+#=
+@info"Restarting the simulation..."
+simulation.stop_time = 80days
+=#
 run!(simulation)
 @info"Plotting animation"
 

@@ -10,10 +10,10 @@
 #SBATCH --qos=short
 #SBATCH -t 18:00:00
 
-#SBATCH --job-name=RB_plotting
+#SBATCH --job-name=RB_cpu_simulation
 
-#SBATCH -o jobname_%j.out
-#SBATCH -e jobname_%j.err
+#SBATCH -o %j.out
+#SBATCH -e %j.err
 
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user sfbj55@durham.ac.uk
@@ -21,4 +21,4 @@
 # Run the program
 cd
 
-./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/RB_plots.jl
+./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/RB.jl
