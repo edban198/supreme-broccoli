@@ -42,7 +42,7 @@ t_ff_days = t_ff / (3600 * 24)
 
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 
-τx = -1e-6
+τx = -1e-5
 u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
 
 closure = ScalarDiffusivity(ν=ν,κ=κ)
@@ -73,9 +73,9 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=30seconds, stop_time = 40days)
+simulation = Simulation(model, Δt=30seconds, stop_time=120days)
 
-wizard = TimeStepWizard(cfl=1.1, max_Δt=5minutes)
+wizard = TimeStepWizard(cfl=1.1, max_Δt=2minutes)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
 # Print a progress message
@@ -109,7 +109,7 @@ simulation.output_writers[:full_outputs] = JLD2OutputWriter(
 )
 
 @info"Restarting the simulation..."
-simulation.stop_time = 50days
+simulation.stop_time = 140days
 
 run!(simulation)
 @info"Plotting animation"
@@ -190,7 +190,7 @@ Nu = 1 + avg_wT
 
 @info "Nu = $Nu"
 
-title = @lift "t = " * prettytime(times[$n]) * ", Nu = " * string(round(Nu, digits=8))
+title = @lift "t = " * prettytime(times[$n]) * ", Nu = " * string(round(Nu, digits=6))
 Label(fig[1, :], title, fontsize = 24, tellwidth=true)
 
 #record movie
