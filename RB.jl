@@ -73,10 +73,10 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=2minutes, stop_time = 80days)
+simulation = Simulation(model, Δt=30seconds, stop_time = 40days)
 
-wizard = TimeStepWizard(cfl=1.1, max_Δt=30minutes)
-simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(100))
+wizard = TimeStepWizard(cfl=1.1, max_Δt=5minutes)
+simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
 # Print a progress message
 progress_message(sim) = @printf("Iteration: %04d, time: %s, Δt: %s, max(|u|) = %.1e ms⁻¹, max(|w|) = %.1e ms⁻¹, wall time: %s\n",
@@ -109,7 +109,7 @@ simulation.output_writers[:full_outputs] = JLD2OutputWriter(
 )
 
 @info"Restarting the simulation..."
-simulation.stop_time = 100days
+simulation.stop_time = 50days
 
 run!(simulation)
 @info"Plotting animation"
