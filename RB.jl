@@ -42,7 +42,7 @@ t_ff_days = t_ff / (3600 * 24)
 
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 
-τx = -1e-3
+τx = -1e-4
 u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
 
 closure = ScalarDiffusivity(ν=ν,κ=κ)
@@ -73,9 +73,9 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=10seconds, stop_time=30days)
+simulation = Simulation(model, Δt=1second, stop_time=30days)
 
-wizard = TimeStepWizard(cfl=1.1, max_Δt=30seconds)
+wizard = TimeStepWizard(cfl=1.1, max_Δt=5seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
 # Print a progress message
