@@ -53,7 +53,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
                             advection = UpwindBiased(order=5),
                             tracers = (:T),
                             closure = closure,
-                            boundary_conditions = (; T=T_bcs, u_bcs)
+                            boundary_conditions = (T=T_bcs, u=u_bcs,)
 )
 
 # Initial conditions
