@@ -16,8 +16,8 @@ filename = "./OUTPUTS/RB_gpu_simulation"
 const Nx = 64     # number of points in each of horizontal directions
 const Nz = 32          # number of points in the vertical direction
 
-const Lx = 40     # (m) domain horizontal extents
-const Lz = 10          # (m) domain depth
+const Lx = 32     # (m) domain horizontal extents
+const Lz = 8          # (m) domain depth
 
 grid = RectilinearGrid(CPU(); size = (Nx, Nz),
                        x = (0,Lx),
@@ -42,7 +42,7 @@ t_ff_days = t_ff / (3600 * 24)
 
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 
-τx = -1e-5
+τx = -1e-4
 u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
 
 closure = ScalarDiffusivity(ν=ν,κ=κ)
