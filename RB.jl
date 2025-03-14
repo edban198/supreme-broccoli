@@ -16,8 +16,8 @@ filename = "./OUTPUTS/RB_gpu_simulation"
 const Nx = 64     # number of points in each of horizontal directions
 const Nz = 32          # number of points in the vertical direction
 
-const Lx = 2000     # (m) domain horizontal extents
-const Lz = 1000          # (m) domain depth
+const Lx = 40     # (m) domain horizontal extents
+const Lz = 10          # (m) domain depth
 
 grid = RectilinearGrid(CPU(); size = (Nx, Nz),
                        x = (0,Lx),
@@ -29,7 +29,7 @@ grid = RectilinearGrid(CPU(); size = (Nx, Nz),
 buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_salinity=0)
 
 #Set values
-const R = 657.5 * 2
+const R = 657.5 * 5
 const Pr = 6.8
 const ν = 1.04e-4
 const κ = ν / Pr
