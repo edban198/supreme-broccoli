@@ -7,14 +7,14 @@ using CairoMakie
 using LaTeXStrings
 using Statistics
 using Oceananigans
-using Oceananigans.Units: seconds, minute, minutes, hour, hours, day, days
+using Oceananigans.Units: second, seconds, minute, minutes, hour, hours, day, days
 
 filename = "./OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 32     # number of points in each of horizontal directions
-const Nz = 32          # number of points in the vertical direction
+const Nx = 16     # number of points in each of horizontal directions
+const Nz = 16          # number of points in the vertical direction
 
 const Lx = 4     # (m) domain horizontal extents
 const Lz = 1          # (m) domain depth
@@ -42,7 +42,7 @@ t_ff_days = t_ff / (3600 * 24)
 
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 
-τx = -1e-4
+τx = -1e-6
 u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
 
 closure = ScalarDiffusivity(ν=ν,κ=κ)
