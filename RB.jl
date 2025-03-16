@@ -65,7 +65,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
 Tᵢ(x, z) = Δ * (1 - z/Lz)
 
 # Velocity initial condition:
-uᵢ(x, z) = 0#1e-6 * Ξ(x,z)
+uᵢ(x, z) = 1e-3 * Ξ(x,z)
 #uᵢ(x, z) = 0
 
 # set the model fields using functions or constants:
@@ -73,9 +73,9 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=2minutes, stop_time=30days)
+simulation = Simulation(model, Δt=1minutes, stop_time=30days)
 
-wizard = TimeStepWizard(cfl=0.2, max_Δt=10minutes)
+wizard = TimeStepWizard(cfl=0.2, max_Δt=2minutes)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
 # Print a progress message
