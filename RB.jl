@@ -29,7 +29,7 @@ grid = RectilinearGrid(CPU(); size = (Nx, Nz),
 buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_salinity=0)
 
 #Set values
-const R = 1e8 #657.5 * 2
+const R = 657.5 * 2
 const Pr = 6.8
 const ν = 5e-4
 const κ = ν / Pr
@@ -73,9 +73,9 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=1seconds, stop_time=30days)
+simulation = Simulation(model, Δt=2minutes, stop_time=30days)
 
-wizard = TimeStepWizard(cfl=0.2, max_Δt=5seconds)
+wizard = TimeStepWizard(cfl=0.2, max_Δt=10minutes)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
 # Print a progress message
