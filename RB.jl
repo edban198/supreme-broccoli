@@ -14,7 +14,7 @@ filename = "./OUTPUTS/RB_gpu_simulation"
 @info"Setting up model"
 
 const Nx = 64     # number of points in each of horizontal directions
-const Nz = 64          # number of points in the vertical direction
+const Nz = 32          # number of points in the vertical direction
 
 const Lx = 16     # (m) domain horizontal extents
 const Lz = 4          # (m) domain depth
@@ -72,7 +72,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=1second, stop_time=30days)
+simulation = Simulation(model, Δt=1second, stop_time=90days)
 
 wizard = TimeStepWizard(cfl=0.2, max_Δt=1.5seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
@@ -108,7 +108,7 @@ simulation.output_writers[:full_outputs] = JLD2OutputWriter(
 )
 
 @info"Restarting the simulation..."
-simulation.stop_time = 40days
+simulation.stop_time = 100days
 
 run!(simulation)
 @info"Plotting animation"
