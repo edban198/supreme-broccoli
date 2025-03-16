@@ -22,7 +22,7 @@ const Lz = 4          # (m) domain depth
 grid = RectilinearGrid(CPU(); size = (Nx, Nz),
                        x = (0,Lx),
                        z = (0,Lz),
-                       topology = (Periodic, Flat, Bounded)
+                       topology = (Bounded, Flat, Bounded)
 )
 
 # Buoyancy that depends on temperature:
