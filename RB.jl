@@ -31,7 +31,7 @@ buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_
 #Set values
 const R = 657.5 * 2
 const Pr = 6.8
-const ν = 5e-4
+const ν = 1e-3
 const κ = ν / Pr
 const g = buoyancy.gravitational_acceleration
 const α = buoyancy.equation_of_state.thermal_expansion
@@ -50,7 +50,6 @@ closure = ScalarDiffusivity(ν=ν,κ=κ)
 const f = 10 * κ / Lz^2
 
 model = NonhydrostaticModel(; grid, buoyancy,
-                            advection = UpwindBiased(order=3),
                             tracers = (:T),
                             closure = closure,
                             boundary_conditions = (T=T_bcs,)
