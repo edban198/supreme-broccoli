@@ -13,8 +13,8 @@ filename = "./OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 32     # number of points in each of horizontal directions
-const Nz = 32          # number of points in the vertical direction
+const Nx = 64     # number of points in each of horizontal directions
+const Nz = 64          # number of points in the vertical direction
 
 const Lx = 4     # (m) domain horizontal extents
 const Lz = 1          # (m) domain depth
@@ -42,7 +42,7 @@ t_ff_days = t_ff / (3600 * 24)
 
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 
-τx = -1e-4
+τx = -1e-5
 u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
 
 closure = ScalarDiffusivity(ν=ν,κ=κ)
@@ -50,7 +50,7 @@ closure = ScalarDiffusivity(ν=ν,κ=κ)
 const f = 10 * κ / Lz^2
 
 model = NonhydrostaticModel(; grid, buoyancy,
-                            advection = UpwindBiased(order=5),
+                            advection = UpwindBiased(order=3),
                             tracers = (:T),
                             closure = closure,
                             boundary_conditions = (T=T_bcs, u=u_bcs,)
@@ -75,7 +75,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 simulation = Simulation(model, Δt=1seconds, stop_time=30days)
 
-wizard = TimeStepWizard(cfl=0.9, max_Δt=10minutes)
+wizard = TimeStepWizard(cfl=0.9, max_Δt=30seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
 # Print a progress message
