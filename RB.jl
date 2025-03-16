@@ -31,7 +31,7 @@ buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_
 #Set values
 const R = 657.5 * 10
 const Pr = 6.8
-const ν = 1.04e-5
+const ν = 1.04e-3
 const κ = ν / Pr
 const g = buoyancy.gravitational_acceleration
 const α = buoyancy.equation_of_state.thermal_expansion
@@ -42,7 +42,7 @@ t_ff_days = t_ff / (3600 * 24)
 
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 
-τx = -1e-6
+τx = -1e-4
 u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
 
 closure = ScalarDiffusivity(ν=ν,κ=κ)
