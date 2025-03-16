@@ -72,9 +72,9 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=1minutes, stop_time=30days)
+simulation = Simulation(model, Δt=1second, stop_time=30days)
 
-wizard = TimeStepWizard(cfl=0.2, max_Δt=2minutes)
+wizard = TimeStepWizard(cfl=0.2, max_Δt=3seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
 # Print a progress message
