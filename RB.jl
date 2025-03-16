@@ -65,7 +65,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
 Tᵢ(x, z) = Δ * (1 - z/Lz)
 
 # Velocity initial condition:
-uᵢ(x, z) = 1e-6 * Ξ(x,z)
+uᵢ(x, z) = 0#1e-6 * Ξ(x,z)
 #uᵢ(x, z) = 0
 
 # set the model fields using functions or constants:
