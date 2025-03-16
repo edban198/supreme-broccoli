@@ -29,7 +29,7 @@ grid = RectilinearGrid(CPU(); size = (Nx, Nz),
 buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_salinity=0)
 
 #Set values
-const R = 657.5 * 2
+const R = 1e8 #657.5 * 2
 const Pr = 6.8
 const ν = 5e-4
 const κ = ν / Pr
