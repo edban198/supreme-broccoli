@@ -72,7 +72,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=1second, stop_time=90days)
+simulation = Simulation(model, Δt=1second, stop_time=190days)
 
 wizard = TimeStepWizard(cfl=0.2, max_Δt=1.5seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
@@ -108,7 +108,7 @@ simulation.output_writers[:full_outputs] = JLD2OutputWriter(
 )
 
 @info"Restarting the simulation..."
-simulation.stop_time = 100days
+simulation.stop_time = 200days
 
 run!(simulation)
 @info"Plotting animation"
