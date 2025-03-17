@@ -185,7 +185,7 @@ wT_timeseries = w_center_timeseries .* T_timeseries
 
 avg_wT = mean(wT_timeseries)
 
-Nu = 1 + avg_wT
+Nu = 1 + (Lz / (κ * Δ)) * avg_wT
 
 @info "Nu = $Nu"
 
