@@ -29,7 +29,8 @@ grid = RectilinearGrid(CPU(); size = (Nx, Nz),
 buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_salinity=0)
 
 #Set values
-const R = 657.5 * 10
+const γ = 2
+const R = 657.5 * γ
 const Pr = 6.8
 const ν = 1e-3
 const κ = ν / Pr
@@ -188,8 +189,10 @@ avg_wT = mean(wT_timeseries)
 Nu = 1 + (Lz / (κ * Δ)) * avg_wT
 
 @info "Nu = $Nu"
+@info "R = $R"
+@info "R/R_c = $γ"
 
-title = @lift "t = " * prettytime(times[$n]) * ", Nu = " * string(round(Nu, digits=6))
+title = @lift "t = " * prettytime(times[$n]) * ", Nu = " * string(round(Nu, digits=6), "R/R_c = $γ")
 Label(fig[1, :], title, fontsize = 24, tellwidth=true)
 
 #record movie
