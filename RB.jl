@@ -53,7 +53,7 @@ const f = 10 * κ / Lz^2
 model = NonhydrostaticModel(; grid, buoyancy,
                             tracers = (:T),
                             closure = closure,
-                            boundary_conditions = (T=T_bcs,)
+                            boundary_conditions = (T=T_bcs,u=u_bcs,)
 )
 
 # Initial conditions
