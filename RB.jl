@@ -43,7 +43,7 @@ t_ff_days = t_ff / (3600 * 24)
 
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 
-τx = -1e-5
+τx = -1e-6
 u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
 
 closure = ScalarDiffusivity(ν=ν,κ=κ)
@@ -188,11 +188,12 @@ avg_wT = mean(wT_timeseries)
 
 Nu = 1 + (Lz / (κ * Δ)) * avg_wT
 
+@info "Pr = $Pr"
 @info "Nu = $Nu"
 @info "R = $R"
 @info "R/R_c = $γ"
 
-title = @lift "t = " * prettytime(times[$n]) * ", Nu = " * string(round(Nu, digits=6), "R/R_c = $γ")
+title = @lift "t = " * prettytime(times[$n]) * ", Nu = " * string(round(Nu, digits=3), ", R/R_c = $γ")
 Label(fig[1, :], title, fontsize = 24, tellwidth=true)
 
 #record movie
