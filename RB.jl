@@ -29,6 +29,9 @@ grid = RectilinearGrid(CPU(); size = (Nx, Nz),
 buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_salinity=0)
 
 #Set values
+const time1 = 30days
+const time2 = 40days
+
 const γ = 2
 const R = 657.5 * γ
 const Pr = 6.8
@@ -43,7 +46,7 @@ t_ff_days = t_ff / (3600 * 24)
 
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 
-τx = -1e-6
+τx = -1e-8
 u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
 
 closure = ScalarDiffusivity(ν=ν,κ=κ)
@@ -73,7 +76,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=1second, stop_time=190days)
+simulation = Simulation(model, Δt=1second, stop_time=time1)
 
 wizard = TimeStepWizard(cfl=0.2, max_Δt=1.5seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
@@ -109,7 +112,7 @@ simulation.output_writers[:full_outputs] = JLD2OutputWriter(
 )
 
 @info"Restarting the simulation..."
-simulation.stop_time = 200days
+simulation.stop_time = time2
 
 run!(simulation)
 @info"Plotting animation"
