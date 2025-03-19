@@ -47,7 +47,7 @@ t_ff_days = t_ff / (3600 * 24)
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 
 τx = -1e-8
-u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))
+u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx), bottom = ValueBoundaryCondition(0))
 
 closure = ScalarDiffusivity(ν=ν,κ=κ)
 
