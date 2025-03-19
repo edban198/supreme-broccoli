@@ -39,15 +39,15 @@ const ν = 1e-3
 const κ = ν / Pr
 const g = buoyancy.gravitational_acceleration
 const α = buoyancy.equation_of_state.thermal_expansion
-const Δ = ν * κ * R / (g * α * Lz^3) 
+const Δ = ν * κ * R / (g * α * Lz^3)
+const τx = -1e-10
 t_ff = sqrt(Lz / (g * α * Δ))
 t_ff_days = t_ff / (3600 * 24)
 @info "Freefall time in days ~ $t_ff_days"
 
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 
-τx = -1e-8
-u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx), bottom = ValueBoundaryCondition(0))
+u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx))#, bottom = ValueBoundaryCondition(0)
 
 closure = ScalarDiffusivity(ν=ν,κ=κ)
 
