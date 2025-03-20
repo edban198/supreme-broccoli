@@ -97,6 +97,7 @@ run!(simulation)
 # OUTPUTS
 outputs = (
     w = model.velocities.w,
+    u = model.velocities.u,
     T = model.tracers.T,
     #avg_T = mean(model.tracers.T, dims=(1,2)),
     s = sqrt(model.velocities.u^2 + model.velocities.w^2)
@@ -119,12 +120,14 @@ run!(simulation)
 
 T_timeseries = FieldTimeSeries(filename * ".jld2", "T")
 s_timeseries = FieldTimeSeries(filename * ".jld2", "s")
+w_timeseries = FieldTimeSeries(filename * ".jld2", "w")
+u_timeseries = FieldTimeSeries(filename * ".jld2", "u")
 #avg_T_timeseries = FieldTimeSeries(filename * ".jld2", "avg_T")
 times = T_timeseries.times
 
 set_theme!(Theme(fontsize = 24))
 
-fig = Figure(size = (1600,1000))
+fig = Figure(size = (1600,2000))
 
 axis_kwargs = (xlabel = "x (m)", ylabel = "z (m)",
                aspect = DataAspect()
@@ -132,16 +135,22 @@ axis_kwargs = (xlabel = "x (m)", ylabel = "z (m)",
 
 ax_T = Axis(fig[2,1]; title = L"Temperature, $T$", axis_kwargs...)
 ax_s = Axis(fig[3,1]; title = L"Speed, $s = \sqrt{u^2+v^2}$", axis_kwargs...)
+ax_w = Axis(fig[4,1]; title = L"Vertical Velocity, $w$", axis_kwargs...)
+ax_u = Axis(fig[5,1]; title = L"Horizontal Velocity, $u$", axis_kwargs...)
 #ax_avg_T = Axis(fig[2,3]; title = L"Average Temperature over $x$", xlabel = "T", ylabel = "z(m)")
 
 n = Observable(1)
 
 T = @lift T_timeseries[$n]
 s = @lift s_timeseries[$n]
+w = @lift w_timeseries[$n]
+u = @lift u_timeseries[$n]
 #avg_T = @lift vec(dropdims(avg_T_timeseries[:, :, :, $n], dims=(1,2)))
 
 Tlims = (minimum(abs, interior(T_timeseries)), maximum(abs, interior(T_timeseries)))
 slims = (minimum(abs, interior(s_timeseries)), maximum(abs, interior(s_timeseries)))
+wlims = (minimum(abs, interior(w_timeseries)), maximum(abs, interior(w_timeseries)))
+ulims = (minimum(abs, interior(u_timeseries)), maximum(abs, interior(u_timeseries)))
 #=
 xlims!(ax_avg_T, Tlims)
 ylims!(ax_avg_T, 0, Lz)
@@ -152,6 +161,10 @@ hm_T = heatmap!(ax_T, T; colormap = :thermometer, colorrange = Tlims)
 Colorbar(fig[2,2], hm_T)
 hm_s = heatmap!(ax_s, s; colormap = :speed, colorrange = slims)
 Colorbar(fig[3,2], hm_s)
+hm_w = heatmap!(ax_w, w; colormap = :speed, colorrange = wlims)
+Colorbar(fig[4,2], hm_w)
+hm_u = heatmap!(ax_u, u; colormap = :speed, colorrange = ulims)
+Colorbar(fig[5,2], hm_u)
 #=
 using Interpolations
 
