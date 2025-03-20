@@ -149,8 +149,8 @@ u = @lift u_timeseries[$n]
 
 Tlims = (minimum(abs, interior(T_timeseries)), maximum(abs, interior(T_timeseries)))
 slims = (minimum(abs, interior(s_timeseries)), maximum(abs, interior(s_timeseries)))
-wlims = (minimum(abs, interior(w_timeseries)), maximum(abs, interior(w_timeseries)))
-ulims = (minimum(abs, interior(u_timeseries)), maximum(abs, interior(u_timeseries)))
+wlims = (minimum(interior(w_timeseries)), maximum(abs, interior(w_timeseries)))
+ulims = (minimum(interior(u_timeseries)), maximum(abs, interior(u_timeseries)))
 #=
 xlims!(ax_avg_T, Tlims)
 ylims!(ax_avg_T, 0, Lz)
