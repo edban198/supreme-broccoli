@@ -29,8 +29,8 @@ grid = RectilinearGrid(CPU(); size = (Nx, Nz),
 buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_salinity=0)
 
 #Set values
-const time1 = 40days
-const time2 = 50days
+const time1 = 20days
+const time2 = 30days
 
 const γ = 2
 const R = 657.5 * γ
@@ -47,7 +47,7 @@ t_ff_days = t_ff / (3600 * 24)
 
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 
-u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx), bottom = ValueBoundaryCondition(0))
+u_bcs = FieldBoundaryConditions(bottom = ValueBoundaryCondition(0)) #top = FluxBoundaryCondition(τx), 
 
 closure = ScalarDiffusivity(ν=ν,κ=κ)
 
