@@ -40,7 +40,7 @@ const κ = ν / Pr
 const g = buoyancy.gravitational_acceleration
 const α = buoyancy.equation_of_state.thermal_expansion
 const Δ = ν * κ * R / (g * α * Lz^3)
-const τx = 0
+const τx = -1e-10
 t_ff = sqrt(Lz / (g * α * Δ))
 t_ff_days = t_ff / (3600 * 24)
 @info "Freefall time in days ~ $t_ff_days"
@@ -204,6 +204,7 @@ avg_wT = mean(wT_timeseries)
 
 Nu = 1 + (Lz / (κ * Δ)) * avg_wT
 
+@info "τx = $τx"
 @info "Pr = $Pr"
 @info "Nu = $Nu"
 @info "R = $R"
