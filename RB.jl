@@ -32,22 +32,22 @@ buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_
 const time1 = 5days
 const time2 = 6days
 
-const γ = 2.5
-const R = 657.5 * γ
+const γ = 2
+const R = 1707.76 * γ
 const Pr = 6.8
 const ν = 1e-3
 const κ = ν / Pr
 const g = buoyancy.gravitational_acceleration
 const α = buoyancy.equation_of_state.thermal_expansion
 const Δ = ν * κ * R / (g * α * Lz^3)
-const τx = -1e-10
+const τx = 0
 t_ff = sqrt(Lz / (g * α * Δ))
 t_ff_days = t_ff / (3600 * 24)
 @info "Freefall time in days ~ $t_ff_days"
 
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 
-u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx), bottom = ValueBoundaryCondition(0))
+u_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(τx), bottom = ValueBoundaryCondition(0))
 
 closure = ScalarDiffusivity(ν=ν,κ=κ)
 
