@@ -9,7 +9,7 @@ using Statistics
 using Oceananigans
 using Oceananigans.Units: second, seconds, minute, minutes, hour, hours, day, days
 
-const γ = 2
+const γ = 1
 const R = 1707.76 * γ
 filename = "./OUTPUTS/RB_gpu_simulation_$γ"
 
@@ -213,14 +213,14 @@ Nu = 1 + (Lz / (κ * Δ)) * avg_wT
 
 title = @lift "t = " * prettytime(times[$n]) * ", Nu = " * string(round(Nu, digits=3), ", R/R_c = $γ")
 Label(fig[1, :], title, fontsize = 24, tellwidth=true)
-#=
+
 #record movie
 frames = 1:length(times)
 @info "Making an animation..."
 record(fig, filename * ".mp4", frames, framerate=16) do i
     n[] = i
 end
-=#
+
 #=
 # Compute mean wT over x, y, z
 wT_avg_timeseries_2 = mean(wT_timeseries, dims=(1,2,3))  

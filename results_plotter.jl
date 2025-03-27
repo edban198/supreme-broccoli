@@ -48,7 +48,7 @@ Nu1_c = [Nu_c[i] for i in eachindex(γ_c) if γ_c[i] == 2.0]
 # Plot
 fig_c = Figure(size=(800, 800))
 ax_c = Axis(fig_c[1, 1],
-          xlabel="Wind forcing (flux)",
+          xlabel="Wind forcing (constant u bc)",
           ylabel="Nu",
           title="Nu vs constant Wind Forcing at Different R/R_c",
           xticks=0:0.001:0.01)
