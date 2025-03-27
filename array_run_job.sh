@@ -22,4 +22,4 @@ GAMMAS=(1 1.1 1.2 1.4 2 3 4 6 10 15 20 30 40 50)
 GAMMA=${GAMMAS[$SLURM_ARRAY_TASK_ID - 1]}
 
 # Run the Julia script with this gamma
-./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/RB.jl $GAMMA
+./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/array_RB.jl $GAMMA
