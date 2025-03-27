@@ -16,8 +16,8 @@ filename = "./OUTPUTS/RB_gpu_simulation_$(γ)"
 
 @info"Setting up model"
 
-const Nx = 64     # number of points in each of horizontal directions
-const Nz = 32          # number of points in the vertical direction
+const Nx = 256     # number of points in each of horizontal directions
+const Nz = 128          # number of points in the vertical direction
 
 const Lx = 16     # (m) domain horizontal extents
 const Lz = 4          # (m) domain depth

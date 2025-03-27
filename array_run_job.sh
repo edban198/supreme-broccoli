@@ -11,11 +11,18 @@
 #SBATCH --mail-type=END
 #SBATCH --mail-user=sfbj55@durham.ac.uk
 
+# Optional: ensure you’re in the correct directory
+cd ~/CODE/supreme-broccoli
+
 # Gamma values to simulate
 GAMMAS=(1 1.1 1.2 1.4 2 3 4 6 10 15 20 30 40 50)
 
 # Get the gamma for this task
 GAMMA=${GAMMAS[$SLURM_ARRAY_TASK_ID - 1]}
 
-# Run the Julia script with this gamma
-~/julia-1.11.2/bin/julia ./CODE/supreme-broccoli/array_RB.jl $GAMMA
+# Run the Julia simulation
+~/julia-1.11.2/bin/julia ./array_RB.jl $GAMMA
+
+# Extract the "data for csv" line and append to master CSV file
+grep "data for csv:" RB_sim_${SLURM_JOB_ID}_${SLURM_ARRAY_TASK_ID}.err | \
+    sed 's/.*data for csv: //' >> RB_results_${SLURM_JOB_ID}.csv
