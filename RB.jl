@@ -9,7 +9,9 @@ using Statistics
 using Oceananigans
 using Oceananigans.Units: second, seconds, minute, minutes, hour, hours, day, days
 
-filename = "./OUTPUTS/RB_gpu_simulation"
+const γ = 2
+const R = 1707.76 * γ
+filename = "./OUTPUTS/RB_gpu_simulation_$γ"
 
 @info"Setting up model"
 
@@ -32,15 +34,13 @@ buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_
 const time1 = 5days
 const time2 = 6days
 
-const γ = 2
-const R = 1707.76 * γ
 const Pr = 6.8
 const ν = 1e-3
 const κ = ν / Pr
 const g = buoyancy.gravitational_acceleration
 const α = buoyancy.equation_of_state.thermal_expansion
 const Δ = ν * κ * R / (g * α * Lz^3)
-const τx = 5e-4
+const τx = 0
 t_ff = sqrt(Lz / (g * α * Δ))
 t_ff_days = t_ff / (3600 * 24)
 @info "Freefall time in days ~ $t_ff_days"
@@ -213,14 +213,14 @@ Nu = 1 + (Lz / (κ * Δ)) * avg_wT
 
 title = @lift "t = " * prettytime(times[$n]) * ", Nu = " * string(round(Nu, digits=3), ", R/R_c = $γ")
 Label(fig[1, :], title, fontsize = 24, tellwidth=true)
-
+#=
 #record movie
 frames = 1:length(times)
 @info "Making an animation..."
 record(fig, filename * ".mp4", frames, framerate=16) do i
     n[] = i
 end
-
+=#
 #=
 # Compute mean wT over x, y, z
 wT_avg_timeseries_2 = mean(wT_timeseries, dims=(1,2,3))  
