@@ -21,7 +21,8 @@ fig = Figure(size=(800, 800))
 ax = Axis(fig[1, 1],
           xlabel="Wind forcing (flux)",
           ylabel="Nu",
-          title="Nu vs flux Wind Forcing at Different R/R_c")
+          title="Nu vs flux Wind Forcing at Different R/R_c"
+)
 
 scatter!(ax, F1, Nu1, label="R/R_c = 2")
 scatter!(ax, F2, Nu2, label="R/R_c = 2.5")
@@ -49,7 +50,8 @@ fig_c = Figure(size=(800, 800))
 ax_c = Axis(fig_c[1, 1],
           xlabel="Wind forcing (flux)",
           ylabel="Nu",
-          title="Nu vs constant Wind Forcing at Different R/R_c")
+          title="Nu vs constant Wind Forcing at Different R/R_c",
+          xticks=0:0.001:0.01)
 
 scatter!(ax_c, F1_c, Nu1_c, label="R/R_c = 2")
 #scatter!(ax_c, F2_c, Nu2_c, label="R/R_c = 2.5")
