@@ -32,7 +32,7 @@ save("nu_vs_flux_wind_forcing.png", fig)
 
 #Constant wind forcing
 γ_c = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
-F_c = [0, 1e-10, 1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 5e-4, 8e-4, 1e-3, 1e-2, 5e-3]
+F_c = [0, 1e-10, 1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 5e-4, 8e-4, 1e-3, 1e-2, 5e-3, 2e-3]
 Nu_c = [
     1.7942710918869882,
     1.7942710918869826,
@@ -46,14 +46,15 @@ Nu_c = [
     1.7405832443707834,
     1.7006242785703853,
     1.0,
-    1.0
+    1.0,
+    1.2717548390175168
 ]
 
 F1_c = [F_c[i] for i in eachindex(γ_c) if γ_c[i] == 2.0]
 Nu1_c = [Nu_c[i] for i in eachindex(γ_c) if γ_c[i] == 2.0]
 
-#F2_c = [F[i] for i in eachindex(R) if R[i] == 2.5]
-#Nu2_c = [Nu[i] for i in eachindex(R) if R[i] == 2.5]
+#F2_c = [F_c[i] for i in eachindex(γ_c) if γ_c[i] == X]
+#Nu2_c = [Nu_c[i] for i in eachindex(γ_c) if γ_c[i] == X]
 
 # Plot
 fig_c = Figure(resolution=(800, 800))
