@@ -1,22 +1,23 @@
 using CairoMakie
+using CSV, DataFrames
 
 # Data
-R = [2, 2, 2, 2, 2, 2, 2, 2, 2,
-     2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5]
-F = [1e-10, 0, 1e-8, 1e-7, 5e-7, 2e-7, 1.5e-7, 2.5e-7, 3e-7,
-     1e-10, 1e-10, 1e-9, 1e-8, 1e-7, 1e-6, 5e-7, 2e-7]
-Nu = [1.226157172, 1.226157229, 1.225585405, 1.167617251, 1.0, 1.000001444, 1.0862497, 1.0, 1.0,
-      1.538779181, 1.538779141, 1.538775225, 1.538383478, 1.497647982, 1.0, 1.0, 1.358498654]
+df = CSV.read("data/flux_wind_forcing.csv", DataFrame)
+
+F = df.flux_wind_forcing
+Nu = df.Nu
+γ = df.gamma
+slurm_id = df.SLURM_id
 
 # Separate by R/R_c
-F1 = [F[i] for i in eachindex(R) if R[i] == 2.0]
-Nu1 = [Nu[i] for i in eachindex(R) if R[i] == 2.0]
+F1 = [F[i] for i in eachindex(γ) if γ[i] == 2.0]
+Nu1 = [Nu[i] for i in eachindex(γ) if γ[i] == 2.0]
 
-F2 = [F[i] for i in eachindex(R) if R[i] == 2.5]
-Nu2 = [Nu[i] for i in eachindex(R) if R[i] == 2.5]
+F2 = [F[i] for i in eachindex(γ) if γ[i] == 2.5]
+Nu2 = [Nu[i] for i in eachindex(γ) if γ[i] == 2.5]
 
 # Plot
-fig = Figure(resolution=(800, 800))
+fig = Figure(size=(800, 800))
 ax = Axis(fig[1, 1],
           xlabel="Wind forcing (flux)",
           ylabel="Nu",
@@ -30,26 +31,12 @@ axislegend(ax)
 # Save figure
 save("nu_vs_flux_wind_forcing.png", fig)
 
-#Constant wind forcing
-F_c = [0, 1e-10, 1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4, 5e-4, 8e-4, 1e-3, 1e-2, 5e-3, 2e-3, 1.5e-3]
-γ_c = fill(2, length(F_c))
-Nu_c = [
-    1.7942710918869882,
-    1.7942710918869826,
-    1.7942710918868796,
-    1.7942710918801934,
-    1.794271091214404,
-    1.7942710246276579,
-    1.7942643657080029,
-    1.7935959928249512,
-    1.775863590460335,
-    1.7405832443707834,
-    1.7006242785703853,
-    1.0,
-    1.0,
-    1.2717548390175168,
-    1.5079270460343697
-]
+df_c = CSV.read("data/constant_wind_forcing.csv", DataFrame)
+
+F_c = df_c.const_wind_forcing
+Nu_c = df_c.Nu
+γ_c = df_c.gamma
+slurm_id_c = df_c.SLURM_id
 
 F1_c = [F_c[i] for i in eachindex(γ_c) if γ_c[i] == 2.0]
 Nu1_c = [Nu_c[i] for i in eachindex(γ_c) if γ_c[i] == 2.0]
@@ -58,7 +45,7 @@ Nu1_c = [Nu_c[i] for i in eachindex(γ_c) if γ_c[i] == 2.0]
 #Nu2_c = [Nu_c[i] for i in eachindex(γ_c) if γ_c[i] == X]
 
 # Plot
-fig_c = Figure(resolution=(800, 800))
+fig_c = Figure(size=(800, 800))
 ax_c = Axis(fig_c[1, 1],
           xlabel="Wind forcing (flux)",
           ylabel="Nu",
