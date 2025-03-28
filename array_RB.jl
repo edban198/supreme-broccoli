@@ -32,8 +32,8 @@ grid = RectilinearGrid(CPU(); size = (Nx, Nz),
 buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_salinity=0)
 
 #Set values
-const time1 = 5days
-const time2 = 6days
+const time1 = 10minutes
+const time2 = 1day
 
 const Pr = 6.8
 const ν = 1e-3
@@ -93,7 +93,6 @@ add_callback!(simulation, progress_message, IterationInterval(100))
 
 @info "running sim..."
 run!(simulation)
-
 
 # OUTPUTS
 outputs = (
