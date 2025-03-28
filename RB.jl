@@ -31,8 +31,8 @@ grid = RectilinearGrid(CPU(); size = (Nx, Nz),
 buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_salinity=0)
 
 #Set values
-const time1 = 1hour
-const time2 = 6days
+const time1 = 10minutes
+const time2 = 12hours
 
 const Pr = 6.8
 const ν = 1e-3
