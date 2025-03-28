@@ -5,12 +5,12 @@
 #cores in each node.
 # X,Y are integers. Refer to table for various combinations
 #SBATCH -N 1
-#SBATCH -c 64
+#SBATCH -c 16
 #SBATCH -p cpu
 #SBATCH --qos=short
 #SBATCH -t 18:00:00
 
-#SBATCH --job-name=RB_cpu_simulation
+#SBATCH --job-name=RB_cpu_simulation_report
 
 #SBATCH -o %j.out
 #SBATCH -e %j.err

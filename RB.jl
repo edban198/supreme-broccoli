@@ -11,12 +11,12 @@ using Oceananigans.Units: second, seconds, minute, minutes, hour, hours, day, da
 
 const γ = 1
 const R = 1707.76 * γ
-filename = "./OUTPUTS/RB_gpu_simulation_$γ"
+filename = "./OUTPUTS/RB_gpu_simulation"
 
 @info"Setting up model"
 
-const Nx = 64     # number of points in each of horizontal directions
-const Nz = 32          # number of points in the vertical direction
+const Nx = 256     # number of points in each of horizontal directions
+const Nz = 128          # number of points in the vertical direction
 
 const Lx = 16     # (m) domain horizontal extents
 const Lz = 4          # (m) domain depth
@@ -31,7 +31,7 @@ grid = RectilinearGrid(CPU(); size = (Nx, Nz),
 buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_salinity=0)
 
 #Set values
-const time1 = 5days
+const time1 = 1hour
 const time2 = 6days
 
 const Pr = 6.8
@@ -76,9 +76,9 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=1second, stop_time=time1)
+simulation = Simulation(model, Δt=0.1second, stop_time=time1)
 
-wizard = TimeStepWizard(cfl=0.2, max_Δt=1.5seconds)
+wizard = TimeStepWizard(cfl=0.2, max_Δt=0.2seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
 # Print a progress message
