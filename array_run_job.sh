@@ -22,7 +22,3 @@ GAMMA=${GAMMAS[$SLURM_ARRAY_TASK_ID - 1]}
 
 # Run the Julia simulation
 ~/julia-1.11.2/bin/julia ./array_RB.jl $GAMMA
-
-# Extract the "data for csv" line and append to master CSV file
-grep "data for csv:" RB_sim_${SLURM_JOB_ID}_${SLURM_ARRAY_TASK_ID}.err | \
-    sed 's/.*data for csv: //' >> RB_results_${SLURM_JOB_ID}.csv
