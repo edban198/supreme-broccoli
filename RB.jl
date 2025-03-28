@@ -9,7 +9,7 @@ using Statistics
 using Oceananigans
 using Oceananigans.Units: second, seconds, minute, minutes, hour, hours, day, days
 
-const γ = 1
+const γ = 5
 const R = 1707.76 * γ
 filename = "./OUTPUTS/RB_gpu_simulation"
 
