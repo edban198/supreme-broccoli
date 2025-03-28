@@ -244,3 +244,35 @@ lines!(ax_Nu, times_days, Nu)
 # Save figure
 save("./OUTPUTS/Nusselt_number_vs_time.png", fig_Nu)
 =#
+
+@info "plotting polished time snapshots"
+
+wanted_times = [1hour, 2hours, 12hours]
+timestamps = [findfirst(t -> isapprox(t, wt; atol=1e-6), times) for wt in wanted_times]
+
+n = length(timestamps)
+fig_snap = Figure(size=(2400, 1200))  # or adjust to your liking
+
+titles = [L"Temperature, $T$", L"Speed $s = \sqrt{u^2+v^2}$", L"Verticle velocity, $w$", L"Horizontal velocity, $u$"]
+fields = [T_timeseries, s_timeseries, w_timeseries, u_timeseries]
+lims = [Tlims, slims, wlims, ulims]
+cmaps = [:thermometer, :speed, :speed, :speed]
+labels = ["(°C)", "(m/s)", "(m/s)", "(m/s)"]
+
+for row in 1:4
+    for (col, t_idx) in enumerate(timestamps)
+        time_label = prettytime(times[t_idx])
+        ax = Axis(fig_snap[row, col];
+                  title = L"%$(titles[row]) at %$time_label",
+                  xlabel = "x (m)", ylabel = "z (m)",
+                  aspect = DataAspect())
+        hm = heatmap!(ax, fields[row][t_idx];
+                      colormap = cmaps[row],
+                      colorrange = lims[row])
+        if col == n  # only add one colorbar at the end
+            Colorbar(fig_snap[row, n+1], hm, label = labels[row])
+        end
+    end
+end
+
+save(filename * "_snapshots.png", fig_snap)
