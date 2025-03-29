@@ -33,7 +33,7 @@ buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_
 
 #Set values
 const time1 = 10minutes
-const time2 = 1day
+const time2 = 5days
 
 const Pr = 6.8
 const ν = 1e-3

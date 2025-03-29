@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=RB_cpu_simulation_array
 #SBATCH -N 1
-#SBATCH -c 2
+#SBATCH -c 4
 #SBATCH -p cpu
 #SBATCH --qos=short
 #SBATCH -t 18:00:00
