@@ -89,3 +89,7 @@ end
 # Add legend and save
 axislegend(ax_3)
 save("γ_vs_Nu_comparison.png", fig_3)
+
+#1 - 5-6days low res
+#2 - 0-1days high res
+#3 - 0-5days high res
