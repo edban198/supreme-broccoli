@@ -10,14 +10,18 @@ using Oceananigans
 using Oceananigans.Units: second, seconds, minute, minutes, hour, hours, day, days
 
 # Get γ from command line argument
-γ = parse(Float64, ARGS[1])
-R = 1707.76 * γ
-filename = "./OUTPUTS/RB_gpu_simulation_$(γ)"
+const γ = 2
+const R = 1707.76 * γ
+const Pr = parse(Float64, ARGS[1])
+const κ = 1e-7
+const ν = Pr * κ
+
+filename = "./OUTPUTS/RB_gpu_simulation_($Pr)"
 
 @info"Setting up model"
 
-const Nx = 512     # number of points in each of horizontal directions
-const Nz = 256          # number of points in the vertical direction
+const Nx = 64     # number of points in each of horizontal directions
+const Nz = 32          # number of points in the vertical direction
 
 const Lx = 16     # (m) domain horizontal extents
 const Lz = 4          # (m) domain depth
@@ -35,9 +39,6 @@ buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_
 const time1 = 1day
 const time2 = 2days
 
-const Pr = 6.8
-const ν = 1e-3
-const κ = ν / Pr
 const g = buoyancy.gravitational_acceleration
 const α = buoyancy.equation_of_state.thermal_expansion
 const Δ = ν * κ * R / (g * α * Lz^3)

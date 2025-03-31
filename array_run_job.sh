@@ -15,10 +15,10 @@
 cd
 
 # Gamma values to simulate
-GAMMAS=(1 1.1 1.2 1.4 2 3 4 6 10 15 20 30 40 50)
+Prs=(1 2 4 6 8 10 16 20 40 50 60 70 80 100)
 
 # Get the gamma for this task
-GAMMA=${GAMMAS[$SLURM_ARRAY_TASK_ID - 1]}
+Prs=${Prs[$SLURM_ARRAY_TASK_ID - 1]}
 
 # Run the Julia simulation
-~/julia-1.11.2/bin/julia ./CODE/supreme-broccoli/array_RB.jl $GAMMA
+~/julia-1.11.2/bin/julia ./CODE/supreme-broccoli/array_RB.jl $Prs
