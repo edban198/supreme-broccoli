@@ -9,9 +9,8 @@ using Statistics
 using Oceananigans
 using Oceananigans.Units: second, seconds, minute, minutes, hour, hours, day, days
 
-# Get γ from command line argument
-const γ = 2
-const R = 1707.76 * γ
+const χ = 2
+const R = 1707.76 * χ
 const Pr = parse(Float64, ARGS[1])
 const κ = 1e-7
 const ν = Pr * κ
@@ -209,8 +208,8 @@ Nu = 1 + (Lz / (κ * Δ)) * avg_wT
 @info "Pr = $Pr"
 @info "Nu = $Nu"
 @info "R = $R"
-@info "R/R_c = $γ"
-@info "data for csv: $γ,$Nu"
+@info "R/R_c = $χ"
+@info "data for csv: $χ,$Nu"
 
 title = @lift "t = " * prettytime(times[$n]) * ", Nu = " * string(round(Nu, digits=3), ", R/R_c = $γ")
 Label(fig[1, :], title, fontsize = 24, tellwidth=true)
