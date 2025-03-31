@@ -10,7 +10,7 @@ using Oceananigans
 using Oceananigans.Units: second, seconds, minute, minutes, hour, hours, day, days
 
 const χ = 2
-const R = 1707.76 * χ
+const R = 1100.65 * χ
 const Pr = parse(Float64, ARGS[1])
 const κ = 1e-7
 const ν = Pr * κ
@@ -41,14 +41,19 @@ const time2 = 2days
 const g = buoyancy.gravitational_acceleration
 const α = buoyancy.equation_of_state.thermal_expansion
 const Δ = ν * κ * R / (g * α * Lz^3)
-const τx = 0
+#Bulk formula
+const ρₒ = 1026.0 # kg m⁻³, average density at the surface of the world ocean
+const u₁₀ = 10    # m s⁻¹, average wind velocity 10 meters above the ocean
+const cᴰ = 2.5e-3 # dimensionless drag coefficient
+const ρₐ = 1.225  # kg m⁻³, average density of air at sea-level
+const τx = - ρₐ / ρₒ * cᴰ * u₁₀ * abs(u₁₀) # m² s⁻²
 t_ff = sqrt(Lz / (g * α * Δ))
 t_ff_days = t_ff / (3600 * 24)
 @info "Freefall time in days ~ $t_ff_days"
 
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 
-u_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(τx), bottom = ValueBoundaryCondition(0))
+u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx), bottom = ValueBoundaryCondition(0))
 
 closure = ScalarDiffusivity(ν=ν,κ=κ)
 
