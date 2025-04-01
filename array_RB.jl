@@ -9,7 +9,7 @@ using Statistics
 using Oceananigans
 using Oceananigans.Units: second, seconds, minute, minutes, hour, hours, day, days
 
-const χ = 5
+const χ = 2
 const R = 1100.65 * χ
 const Pr = parse(Float64, ARGS[1])
 const κ = 1e-5
@@ -71,7 +71,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
 Ξ(x,z) = randn()
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
-Tᵢ(x, z) = Δ * (1 - z/Lz) + 1e-6 * Ξ(x,z)
+Tᵢ(x, z) = Δ * (1 - z/Lz) + 1e-3* Ξ(x,z)
 
 # Velocity initial condition:
 uᵢ(x, z) = 1e-3 * Ξ(x,z)
