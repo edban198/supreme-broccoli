@@ -15,12 +15,12 @@ const Pr = parse(Float64, ARGS[1])
 const κ = 1e-5
 const ν = Pr * κ
 
-filename = "./OUTPUTS/RB_gpu_simulation_(Pr=$(Pr)_chi=$(χ))"
+filename = "./OUTPUTS/RB_gpu_simulation_(Pr=$(Pr)_chi=$(χ))_with_wind"
 
 @info"Setting up model"
 
-const Nx = 128     # number of points in each of horizontal directions
-const Nz = 64          # number of points in the vertical direction
+const Nx = 256     # number of points in each of horizontal directions
+const Nz = 128          # number of points in the vertical direction
 
 const Lx = 8     # (m) domain horizontal extents
 const Lz = 4          # (m) domain depth
@@ -82,9 +82,9 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=0.1second, stop_time=time1)
+simulation = Simulation(model, Δt=0.05second, stop_time=time1)
 
-wizard = TimeStepWizard(cfl=0.2, max_Δt=0.5seconds)
+wizard = TimeStepWizard(cfl=0.2, max_Δt=0.1seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
 # Print a progress message
