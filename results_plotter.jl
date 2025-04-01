@@ -94,3 +94,10 @@ save("γ_vs_Nu_comparison.png", fig_3)
 #2 - 0-1days high res
 #3 - 0-5days high res
 #4 - 1-2days very high res -> timed out need to redo at some point. Will take min 24hrs tho
+
+df_4 = CSV.read("data/Changing_Prandtl_number.csv", DataFrame)
+
+Pr_4 = df_4.Prandtl
+Nu_4 = df_4.Nu
+τx_4 = df_4.taux
+χ_4 = df_4.chi
