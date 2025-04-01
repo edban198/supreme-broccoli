@@ -5,7 +5,7 @@
 #SBATCH -p cpu
 #SBATCH --qos=short
 #SBATCH -t 18:00:00
-#SBATCH --array=1-72
+#SBATCH --array=1-266
 #SBATCH -o RB_sim_%A_%a.out
 #SBATCH -e RB_sim_%A_%a.err
 #SBATCH --mail-type=END
@@ -14,8 +14,8 @@
 cd
 
 # Parameter values to simulate
-Prs=(1 2 4 6 8 10 15 20 40 60 80 100)
-Chis=(1 2 5 10 50 100)
+Prs=(1 1.25 1.5 1.75 2 3 4 5 6 8 10 12 15 20 30 40 60 80 100)19
+Chis=(1 1.1 1.2 1.3 1.5 1.75 2 3 4 5 7.5 10 20 50)14
 
 N_Prs=${#Prs[@]}
 N_Chis=${#Chis[@]}
