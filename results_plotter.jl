@@ -101,3 +101,13 @@ Pr_4 = df_4.Prandtl
 Nu_4 = df_4.Nu
 τx_4 = df_4.taux
 χ_4 = df_4.chi
+
+fig_4 = Figure(size=(800, 800))
+ax_4 = Axis(fig_4[1, 1];
+    xlabel = "Prandtl number",
+    ylabel = "Nu",
+    title = "Nu vs Prandtl number"
+)
+
+scatter!(ax_4, Pr_4, Nu_4)
+save("Nu_vs_Prandtl_number.png", fig_4)

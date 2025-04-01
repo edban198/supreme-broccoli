@@ -9,7 +9,7 @@ using Statistics
 using Oceananigans
 using Oceananigans.Units: second, seconds, minute, minutes, hour, hours, day, days
 
-const χ = 2
+const χ = 5
 const R = 1100.65 * χ
 const Pr = parse(Float64, ARGS[1])
 const κ = 1e-5
@@ -214,7 +214,7 @@ Nu = 1 + (Lz / (κ * Δ)) * avg_wT
 @info "Nu = $Nu"
 @info "R = $R"
 @info "R/R_c = $χ"
-@info "data for csv: $χ,$Nu"
+@info "data for csv: $Pr, $τx, $Nu, $χ"
 #=
 title = @lift "t = " * prettytime(times[$n]) * ", Nu = " * string(round(Nu, digits=3), ", R/R_c = $γ")
 Label(fig[1, :], title, fontsize = 24, tellwidth=true)
