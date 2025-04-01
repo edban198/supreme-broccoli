@@ -214,7 +214,7 @@ Nu = 1 + (Lz / (κ * Δ)) * avg_wT
 @info "Nu = $Nu"
 @info "R = $R"
 @info "R/R_c = $χ"
-@info "data for csv: $Pr, $τx, $Nu, $χ"
+@info "data for csv: $Pr,$τx,$Nu,$χ"
 #=
 title = @lift "t = " * prettytime(times[$n]) * ", Nu = " * string(round(Nu, digits=3), ", R/R_c = $γ")
 Label(fig[1, :], title, fontsize = 24, tellwidth=true)
