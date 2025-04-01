@@ -25,10 +25,8 @@ index=$((SLURM_ARRAY_TASK_ID - 1))
 Prs_index=$(( index % N_Prs ))
 Chis_index=$(( index / N_Prs ))
 
-Prs_vals=${Prs[$Prs_index]}
-Chis_vals=${Chis[$Chis_index]}
+Pr_val=${Prs[$Prs_index]}
+Chi_val=${Chis[$Chis_index]}
 
-echo "Running simulation for Prs: $Prs_vals, Chis: $Chis_vals"
-
-# Run the Julia simulation
-~/julia-1.11.2/bin/julia ./CODE/supreme-broccoli/array_RB.jl $Prs_vals $Chis_vals
+echo "Calling Julia with Pr=$Pr_val, χ=$Chi_val"
+~/julia-1.11.2/bin/julia ./CODE/supreme-broccoli/array_RB.jl $Pr_val $Chi_val
