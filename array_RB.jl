@@ -46,7 +46,7 @@ const ρₒ = 1026.0 # kg m⁻³, average density at the surface of the world oc
 const u₁₀ = 10    # m s⁻¹, average wind velocity 10 meters above the ocean
 const cᴰ = 2.5e-3 # dimensionless drag coefficient
 const ρₐ = 1.225  # kg m⁻³, average density of air at sea-level
-const τx = 0#(κ/Lz)^2 * ρₒ # m² s⁻²
+const τx = (κ/Lz)^2 * ρₒ # m² s⁻²
 t_ff = sqrt(Lz / (g * α * Δ))
 t_ff_days = t_ff / (3600 * 24)
 @info "Freefall time in days ~ $t_ff_days"
