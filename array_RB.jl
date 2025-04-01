@@ -9,7 +9,7 @@ using Statistics
 using Oceananigans
 using Oceananigans.Units: second, seconds, minute, minutes, hour, hours, day, days
 
-const χ = 2
+const χ = parse(Float64, ARGS[2])
 const R = 1100.65 * χ
 const Pr = parse(Float64, ARGS[1])
 const κ = 1e-5
@@ -22,7 +22,7 @@ filename = "./OUTPUTS/RB_gpu_simulation_($Pr)"
 const Nx = 64     # number of points in each of horizontal directions
 const Nz = 32          # number of points in the vertical direction
 
-const Lx = 16     # (m) domain horizontal extents
+const Lx = 8     # (m) domain horizontal extents
 const Lz = 4          # (m) domain depth
 
 grid = RectilinearGrid(CPU(); size = (Nx, Nz),
@@ -35,8 +35,8 @@ grid = RectilinearGrid(CPU(); size = (Nx, Nz),
 buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_salinity=0)
 
 #Set values
-const time1 = 1day
-const time2 = 2days
+const time1 = 1hour
+const time2 = 2hours
 
 const g = buoyancy.gravitational_acceleration
 const α = buoyancy.equation_of_state.thermal_expansion
@@ -46,7 +46,7 @@ const ρₒ = 1026.0 # kg m⁻³, average density at the surface of the world oc
 const u₁₀ = 10    # m s⁻¹, average wind velocity 10 meters above the ocean
 const cᴰ = 2.5e-3 # dimensionless drag coefficient
 const ρₐ = 1.225  # kg m⁻³, average density of air at sea-level
-const τx = (κ/Lz)^2 * ρₒ # m² s⁻²
+const τx = 0#(κ/Lz)^2 * ρₒ # m² s⁻²
 t_ff = sqrt(Lz / (g * α * Δ))
 t_ff_days = t_ff / (3600 * 24)
 @info "Freefall time in days ~ $t_ff_days"

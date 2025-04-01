@@ -11,14 +11,24 @@
 #SBATCH --mail-type=END
 #SBATCH --mail-user=sfbj55@durham.ac.uk
 
-
 cd
 
-# Gamma values to simulate
-Prs=(1 2 4 6 8 10 16 20 40 50 60 70 80 100)
+# Parameter values to simulate
+Prs=(1 2 4 6 8 10 15 20 40 60 80 100)
+Chis=(1 2 5 10 50 100)
 
-# Get the gamma for this task
-Prs=${Prs[$SLURM_ARRAY_TASK_ID - 1]}
+N_Prs=${#Prs[@]}
+N_Chis=${#Chis[@]}
+
+index=$((SLURM_ARRAY_TASK_ID - 1))
+
+Prs_index=$(( index % N_Prs ))
+Chis_index=$(( index / N_Prs ))
+
+Prs_vals=${Prs[$Prs_index]}
+Chis_vals=${Chis[$Chis_index]}
+
+echo "Running simulation for Prs: $Prs_vals, Chis: $Chis_vals"
 
 # Run the Julia simulation
-~/julia-1.11.2/bin/julia ./CODE/supreme-broccoli/array_RB.jl $Prs
+~/julia-1.11.2/bin/julia ./CODE/supreme-broccoli/array_RB.jl $Prs_vals $Chis_vals

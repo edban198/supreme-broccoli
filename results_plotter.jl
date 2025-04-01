@@ -1,5 +1,6 @@
 using CairoMakie
 using CSV, DataFrames
+using Statistics, GLM
 
 # Data
 df = CSV.read("data/flux_wind_forcing.csv", DataFrame)
@@ -97,17 +98,41 @@ save("γ_vs_Nu_comparison.png", fig_3)
 
 df_4 = CSV.read("data/Changing_Prandtl_number.csv", DataFrame)
 
-Pr_4 = df_4.Prandtl
-Nu_4 = df_4.Nu
-τx_4 = df_4.taux
-χ_4 = df_4.chi
-
+# Create figure
 fig_4 = Figure(size=(800, 800))
 ax_4 = Axis(fig_4[1, 1];
     xlabel = "Prandtl number",
     ylabel = "Nu",
-    title = "Nu vs Prandtl number"
+    title = "Nu vs Prandtl number (log-log with best-fit lines)",
+    xscale = log10,
+    yscale = log10
 )
 
-scatter!(ax_4, Pr_4, Nu_4)
+for χ_val_4 in unique(df_4.chi)
+    df_subset_4 = filter(row -> row.chi == χ_val_4, df_4)
+    scatter!(ax_4, df_subset_4.Prandtl, df_subset_4.Nu; label = "χ = $χ_val_4")
+
+    # Prepare log-transformed DataFrame
+    logdf = DataFrame(
+        logPr = log10.(df_subset_4.Prandtl),
+        logNu = log10.(df_subset_4.Nu)
+    )
+
+    # Fit line: logNu ~ logPr
+    model = lm(@formula(logNu ~ logPr), logdf)
+    intercept = coef(model)[1]
+    slope = coef(model)[2]
+
+    # Back-transform to plot in original log-log space
+    Pr_range = range(minimum(df_subset_4.Prandtl), stop=maximum(df_subset_4.Prandtl), length=100)
+    Nu_fit = 10.0^intercept .* Pr_range .^ slope
+
+    # Plot the fitted line
+    lines!(ax_4, Pr_range, Nu_fit; linestyle = :dash, label = "fit χ = $χ_val_4")
+
+    println("χ = $χ_val_4 → Nu ≈ $(round(10^intercept, sigdigits=3)) × Pr^$(round(slope, sigdigits=3))")
+end
+
+axislegend(ax_4)
+
 save("Nu_vs_Prandtl_number.png", fig_4)
