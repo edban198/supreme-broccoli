@@ -5,3 +5,5 @@
 *.mp4
 *.jld2
 *.png
+*.err
+*.out
