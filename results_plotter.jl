@@ -93,4 +93,4 @@ save("γ_vs_Nu_comparison.png", fig_3)
 #1 - 5-6days low res
 #2 - 0-1days high res
 #3 - 0-5days high res
-#4 - 1-2days very high res
+#4 - 1-2days very high res -> timed out need to redo at some point. Will take min 24hrs tho

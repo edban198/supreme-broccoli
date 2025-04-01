@@ -12,7 +12,7 @@ using Oceananigans.Units: second, seconds, minute, minutes, hour, hours, day, da
 const χ = 2
 const R = 1100.65 * χ
 const Pr = parse(Float64, ARGS[1])
-const κ = 1e-7
+const κ = 1e-5
 const ν = Pr * κ
 
 filename = "./OUTPUTS/RB_gpu_simulation_($Pr)"
@@ -82,9 +82,9 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=0.05second, stop_time=time1)
+simulation = Simulation(model, Δt=0.1second, stop_time=time1)
 
-wizard = TimeStepWizard(cfl=0.2, max_Δt=0.1seconds)
+wizard = TimeStepWizard(cfl=0.2, max_Δt=0.2seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
 # Print a progress message
