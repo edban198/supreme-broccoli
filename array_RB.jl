@@ -249,3 +249,8 @@ lines!(ax_Nu, times_days, Nu)
 # Save figure
 save("./OUTPUTS/Nusselt_number_vs_time.png", fig_Nu)
 =#
+
+if isfile(filename * ".jld2")
+    rm(filename * ".jld2"; force=true)
+    @info "Deleted file: " * (filename * ".jld2")
+end
