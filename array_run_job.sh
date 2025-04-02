@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=RB_sim
 #SBATCH -N 1
-#SBATCH -c 4
+#SBATCH -c 1
 #SBATCH -p cpu
 #SBATCH --qos=short
 #SBATCH -t 1-00:00:00
