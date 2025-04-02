@@ -8,8 +8,9 @@
 #SBATCH --array=0-186    # Adjust depending on total combinations
 #SBATCH -o RB_sim_%A_%a.out
 #SBATCH -e RB_sim_%A_%a.err
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user sfbj55@durham.ac.uk
 
-# Define arrays (NO COMMAS, NO QUOTES)
 Prs=(1 1.5 2 3 4 5 6 8 10 12 15 20 30 40 60 80 100)
 Chis=(1 1.2 1.5 2 3 4 5 7.5 10 20 50)
 
