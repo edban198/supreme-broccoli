@@ -1,3 +1,6 @@
+#720171 - 256by128withwind
+#XXX - 256by128nowind
+
 using CairoMakie
 using LaTeXStrings
 using CSV
@@ -5,61 +8,70 @@ using DataFrames
 using GLM
 using Statistics
 
-# Load the data
+# === Load and prepare data ===
 df = CSV.read("data/low_res_big_sim.csv", DataFrame)
-
-# Convert columns if needed
 df.Prandtl = parse.(Float64, string.(df.Prandtl))
-df.chi = parse.(Float64, string.(df.chi))
-df.Nu = parse.(Float64, string.(df.Nu))
+df.chi     = parse.(Float64, string.(df.chi))
+df.Nu      = parse.(Float64, string.(df.Nu))
+df.taux    = parse.(Float64, string.(df.taux))
 
-# Create figure
-fig = Figure(size = (1000, 800))
-ax = Axis(fig[1, 1];
-    xlabel = L"\chi = R / R_c",
-    ylabel = "Nu",
-    title = "Nu vs χ for different Prandtl numbers",
-    xscale = log10,
-    yscale = log10,
-)
+R_c = 1100.65
+df.R = df.chi .* R_c
 
-# Loop over unique Pr values and plot χ vs Nu and best-fit line
-for Pr in sort(unique(df.Prandtl))
-    df_subset = filter(row -> row.Prandtl == Pr, df)
-    sort!(df_subset, :chi)
+# Split datasets
+df_nowind = filter(:taux => ==(0.0), df)
+df_wind   = filter(:taux => !=(0.0), df)
 
-    # Scatter plot
-    scatter!(ax, df_subset.chi, df_subset.Nu; label = "Pr = $Pr")
+# === Helper: Plot scatter with line of best fit ===
+function plot_scatter_fit(df_subset, xcol, xlabel, groupcol, label_suffix, file_prefix)
+    fig = Figure(size=(1000, 800))
+    ax = Axis(fig[1, 1]; xlabel=xlabel, ylabel="Nu",
+              title="Nu vs $xlabel for different $(groupcol) ($label_suffix)",
+              xscale=log10, yscale=log10)
 
-    # Prepare log-transformed data for regression
-    log_chi = log10.(df_subset.chi)
-    log_Nu = log10.(df_subset.Nu)
-    reg_df = DataFrame(logχ = log_chi, logNu = log_Nu)
+    for g in sort(unique(df_subset[!, groupcol]))
+        df_group = filter(row -> row[groupcol] == g, df_subset)
+        x = df_group[!, xcol]
+        y = df_group.Nu
 
-    # Fit model: logNu ~ logχ
-    model = lm(@formula(logNu ~ logχ), reg_df)
-    a = coef(model)[1]     # intercept (log10(a))
-    b = coef(model)[2]     # slope
+        scatter!(ax, x, y; label="$groupcol = $g")
 
-    # Generate fitted line
-    χ_range = range(minimum(df_subset.chi), maximum(df_subset.chi), length=100)
-    Nu_fit = 10^a .* χ_range .^ b
+        model = lm(@formula(log10(y) ~ log10(x)), DataFrame(x=x, y=y))
+        a, b = coef(model)
+        x_range = range(minimum(x), maximum(x), length=100)
+        y_fit = 10^a .* x_range .^ b
+        lines!(ax, x_range, y_fit; linestyle=:dash)
+    end
 
-    lines!(ax, χ_range, Nu_fit; linestyle = :dash)
-    
-    @info "Pr = $Pr → Nu ≈ $(round(10^a, sigdigits=3)) × χ^$(round(b, sigdigits=3))"
+    axislegend(ax, position=:rb)
+    save("$(file_prefix)_vs_Nu_by_$(xcol).png", fig)
 end
 
-axislegend(ax, position = :rb)
-save("χ_vs_Nu_by_Pr.png", fig)
+# === Plotting ===
+plot_scatter_fit(df_nowind, :Prandtl, "Prandtl number", :chi, "No Wind", "no_wind_Pr")
+plot_scatter_fit(df_wind, :Prandtl, "Prandtl number", :chi, "With Wind", "with_wind_Pr")
+plot_scatter_fit(df_nowind, :R, "Rayleigh number", :Prandtl, "No Wind", "no_wind_R")
+plot_scatter_fit(df_wind, :R, "Rayleigh number", :Prandtl, "With Wind", "with_wind_R")
 
-# BIG model regression
-df.R = 1100.65 .* df.chi
-df.logR = log10.(df.R)
-df.logPr = log10.(df.Prandtl)
-df.logNu = log10.(df.Nu)
+# === Regression summaries ===
+function regression_summary(df_subset, label)
+    df_log = DataFrame(
+        logNu = log.(df_subset.Nu),
+        logPr = log.(df_subset.Prandtl),
+        logR  = log.(df_subset.R)
+    )
+    model = lm(@formula(logNu ~ logPr + logR), df_log)
+    println("\n📊 Regression Summary for $label")
+    display(coeftable(model))
+    r2_val = r2(model)
+    n = nobs(model)
+    k = length(coef(model)) - 1
+    adj_r2 = 1 - (1 - r2_val) * (n - 1) / (n - k - 1)
+    stderr = sqrt(deviance(model) / dof_residual(model))
+    println("R²: ", round(r2_val, digits=4))
+    println("Adjusted R²: ", round(adj_r2, digits=4))
+    println("Residual Std. Error: ", round(stderr, digits=4))
+end
 
-model = lm(@formula(logNu ~ logR + logPr), df)
-
-println("regression summary:")
-display(coeftable(model))
+regression_summary(df_nowind, "No Wind")
+regression_summary(df_wind, "With Wind")
