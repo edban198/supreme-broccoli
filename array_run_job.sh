@@ -4,15 +4,15 @@
 #SBATCH -c 1
 #SBATCH -p cpu
 #SBATCH --qos=short
-#SBATCH -t 1-00:00:00
-#SBATCH --array=0-186    # Adjust depending on total combinations
+#SBATCH -t 2-00:00:00
+#SBATCH --array=0-215%64
 #SBATCH -o RB_sim_%A_%a.out
 #SBATCH -e RB_sim_%A_%a.err
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user sfbj55@durham.ac.uk
 
-Prs=(1 1.5 2 3 4 5 6 8 10 12 15 20 30 40 60 80 100)
-Chis=(1 1.2 1.5 2 3 4 5 7.5 10 20 50)
+Prs=(1 1.5 2 3 4 5 6 8 10 12 15 20 30 40 50 60 80 100)
+Chis=(1 1.25 1.5 1.75 2 3 4 5 8 10 20 50)
 
 N_Prs=${#Prs[@]}
 N_Chis=${#Chis[@]}
