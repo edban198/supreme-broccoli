@@ -19,8 +19,8 @@ filename = "./OUTPUTS/RB_gpu_simulation_(Pr=$(Pr)_chi=$(χ))_with_wind"
 
 @info"Setting up model"
 
-const Nx = 256     # number of points in each of horizontal directions
-const Nz = 128          # number of points in the vertical direction
+const Nx = 128     # number of points in each of horizontal directions
+const Nz = 64          # number of points in the vertical direction
 
 const Lx = 8     # (m) domain horizontal extents
 const Lz = 4          # (m) domain depth
@@ -84,7 +84,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 simulation = Simulation(model, Δt=0.05second, stop_time=time1)
 
-wizard = TimeStepWizard(cfl=0.2, max_Δt=0.1seconds)
+wizard = TimeStepWizard(cfl=0.4, max_Δt=0.5seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
 # Print a progress message
