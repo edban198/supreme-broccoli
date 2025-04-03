@@ -5,7 +5,7 @@
 #SBATCH -p cpu
 #SBATCH --qos=short
 #SBATCH -t 2-00:00:00
-#SBATCH --array=0-63%32     # Array index matches number of Pr values (or use 0-215%64 later)
+#SBATCH --array=0-63%48     # Array index matches number of Pr values (or use 0-215%64 later)
 #SBATCH -o RB_sim_%A_%a.out
 #SBATCH -e RB_sim_%A_%a.err
 #SBATCH --mail-type=ALL

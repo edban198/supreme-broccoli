@@ -1,54 +1,66 @@
-using DataFrames, CairoMakie, CSV, GLM, StatsModels, Printf
+using DataFrames, CairoMakie, CSV, GLM, StatsModels, Printf, LaTeXStrings, Colors
 
+# --- Load data ---
 df = CSV.read("data/Nu_vs_Pr.csv", DataFrame)
+df = dropmissing(df)
 
-# Separate by χ value
-df10 = sort(filter(:chi => ==(10.0), df), :Prandtl)
-df15 = sort(filter(:chi => ==(15.0), df), :Prandtl)
+# --- Get unique χ values ---
+χ_values = sort(unique(df.chi))
 
-# Log–log transforms
-df10_log = DataFrame(logPr = log10.(df10.Prandtl), logNu = log10.(df10.Nu))
-df15_log = DataFrame(logPr = log10.(df15.Prandtl), logNu = log10.(df15.Nu))
-
-# Linear fits
-fit10 = lm(@formula(logNu ~ logPr), df10_log)
-fit15 = lm(@formula(logNu ~ logPr), df15_log)
-
-slope10, intercept10 = coef(fit10)[2], coef(fit10)[1]
-slope15, intercept15 = coef(fit15)[2], coef(fit15)[1]
-
-A10 = 10^intercept10
-A15 = 10^intercept15
-
-@info "χ = 10 → Nu ≈ $(round(A10, sigdigits=3)) * Pr^$(round(slope10, digits=3))"
-@info "χ = 15 → Nu ≈ $(round(A15, sigdigits=3)) * Pr^$(round(slope15, digits=3))"
-
-# Prediction lines for plotting
-Pr_range = range(minimum(df10.Prandtl), stop=maximum(df10.Prandtl), length=200)
-Nu_fit10 = A10 .* Pr_range .^ slope10
-Nu_fit15 = A15 .* Pr_range .^ slope15
-
-# Plot
+# --- Plot setup ---
 fig = Figure(size=(1000, 600))
 ax = Axis(fig[1,1],
     xlabel = "Pr",
     ylabel = "Nu",
     xscale = log10,
     yscale = log10,
-    title = "Nu vs Pr (log-log) with power law fits"
+    title = "Nu vs Pr (log-log) for varying χ"
 )
 
-# Data points
-scatter!(ax, df10.Prandtl, df10.Nu, label="χ = 10", color=:blue)
-scatter!(ax, df15.Prandtl, df15.Nu, label="χ = 15", color=:red)
+# --- Color palette ---
+palette = [
+    :dodgerblue,
+    :crimson,
+    :forestgreen,
+    :darkorange,
+    :mediumvioletred,
+    :teal,
+    :indigo
+][1:length(χ_values)]  # Trim if fewer χ
 
-# Fit lines
-lines!(ax, Pr_range, Nu_fit10, color=:blue, linestyle=:dash, label="Fit χ=10")
-lines!(ax, Pr_range, Nu_fit15, color=:red, linestyle=:dash, label="Fit χ=15")
 
-# Annotate slopes
-text!(ax, 3, 6, text=@sprintf("slope (χ=10) ≈ %.3f", slope10), color=:blue, align=(:left, :top))
-text!(ax, 3, 4.5, text=@sprintf("slope (χ=15) ≈ %.3f", slope15), color=:red, align=(:left, :top))
+# --- Loop over each χ ---
+for (i, χ) in enumerate(χ_values)
+    dfχ = sort(filter(:chi => ==(χ), df), :Prandtl)
+    color = palette[i]
 
+    # Scatter points
+    scatter!(ax, dfχ.Prandtl, dfχ.Nu, label="χ = $χ", color=color)
+
+    # Log-log fit
+    dfχ_log = DataFrame(logPr = log10.(dfχ.Prandtl), logNu = log10.(dfχ.Nu))
+    fit = lm(@formula(logNu ~ logPr), dfχ_log)
+    slope, intercept = coef(fit)[2], coef(fit)[1]
+    A = 10^intercept
+
+    # Store equation as LaTeXString
+    eqn_str = @sprintf("\\chi = %.0f:\\quad Nu \\approx %.3f \\cdot Pr^{%.3f}", χ, A, slope)
+    eqn = LaTeXString(eqn_str)
+
+    # Prediction line
+    Pr_range = range(extrema(dfχ.Prandtl)..., length=200)
+    Nu_fit = A .* Pr_range .^ slope
+    lines!(ax, Pr_range, Nu_fit, color=color, linestyle=:dash)
+
+    # Annotate on plot (space them out vertically)
+    y_pos = 10 ^ (log10(maximum(dfχ.Nu)) - 0.2 * i)
+    text!(ax, minimum(dfχ.Prandtl) * 1.1, y_pos, text=eqn, color=color, align=(:left, :center))
+
+    @info "χ = $χ → Nu ≈ $(round(A, sigdigits=3)) * Pr^$(round(slope, digits=3))"
+end
+
+# Legend
 axislegend(ax, position=:rb)
+
+# Save
 save("OUTPUTS/Nu_vs_Pr.png", fig)
