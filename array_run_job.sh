@@ -5,26 +5,25 @@
 #SBATCH -p cpu
 #SBATCH --qos=short
 #SBATCH -t 2-00:00:00
-#SBATCH --array=0-215%64
+#SBATCH --array=0-4%5     # Array index matches number of Pr values (or use 0-215%64 later)
 #SBATCH -o RB_sim_%A_%a.out
 #SBATCH -e RB_sim_%A_%a.err
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user sfbj55@durham.ac.uk
+#SBATCH --mail-user=sfbj55@durham.ac.uk
 
-Prs=(1 1.5 2 3 4 5 6 8 10 12 15 20 30 40 50 60 80 100)
-Chis=(1 1.25 1.5 1.75 2 3 4 5 8 10 20 50)
+# Define Prandtl numbers
+Prs=(2 4 6 8 10)
 
-N_Prs=${#Prs[@]}
-N_Chis=${#Chis[@]}
-
+# Get index from SLURM
 index=$SLURM_ARRAY_TASK_ID
-Pr_index=$((index % N_Prs))
-Chi_index=$((index / N_Prs))
 
-Pr_val=${Prs[$Pr_index]}
-Chi_val=${Chis[$Chi_index]}
+# Extract Pr value
+Pr_val=${Prs[$index]}
 
-echo "Running: Pr = $Pr_val, chi = $Chi_val"
+# Fixed chi value
+Chi_val=10
 
-# Run your Julia script WITHOUT quotes
+echo "Running simulation with: Pr = $Pr_val, chi = $Chi_val"
+
+# Run the Julia script
 ~/julia-1.11.2/bin/julia ~/CODE/supreme-broccoli/array_RB.jl $Pr_val $Chi_val
