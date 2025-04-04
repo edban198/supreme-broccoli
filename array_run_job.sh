@@ -5,7 +5,7 @@
 #SBATCH -p cpu
 #SBATCH --qos=short
 #SBATCH -t 2-00:00:00
-#SBATCH --array=0-809%64        # 800 jobs, up to 64 running at once
+#SBATCH --array=0-728%64
 #SBATCH -o RB_sim_%A_%a.out
 #SBATCH -e RB_sim_%A_%a.err
 #SBATCH --mail-type=ALL
@@ -21,7 +21,7 @@ Prs=(2.0 2.1 2.2 2.3 2.4 2.5 2.6 2.7 2.8 2.9
      9.0 9.1 9.2 9.3 9.4 9.5 9.6 9.7 9.8 9.9
      10.0)
 
-Chis=(5 6 7 8 9 10 11 12 13 14)
+Chis=(4.0 5.5 6.5 7.5 8.5 9.5 10.5 11.5 15.0)
 
 # Compute array indices
 nPr=${#Prs[@]}      # 80
