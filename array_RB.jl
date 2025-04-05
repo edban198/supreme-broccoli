@@ -19,8 +19,8 @@ filename = "./OUTPUTS/RB_gpu_simulation_(Pr=$(Pr)_R=$(R))_without_wind"
 
 @info"Setting up model"
 
-const Nx = 128     # number of points in each of horizontal directions
-const Nz = 64          # number of points in the vertical direction
+const Nx = 256     # number of points in each of horizontal directions
+const Nz = 128          # number of points in the vertical direction
 
 const Lx = 8     # (m) domain horizontal extents
 const Lz = 4          # (m) domain depth
@@ -73,20 +73,18 @@ model = NonhydrostaticModel(; grid, buoyancy,
 Ξ(x,z) = randn()
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
-Tᵢ(x, z) = Δ * (1 - z/Lz) + 1e-8 * Ξ(x,z)
-
-# Velocity initial condition:
-uᵢ(x, z) = 1e-8 * Ξ(x,z)
-#uᵢ(x, z) = 0
+noise_amplitude = 1e-4 * Δ
+Tᵢ(x, z) = Δ * (1 - z/Lz) + noise_amplitude * Ξ(x, z)
+uᵢ(x, z) = noise_amplitude * Ξ(x, z)
 
 # set the model fields using functions or constants:
 set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=0.01second, stop_time=time1)
+simulation = Simulation(model, Δt=0.01seconds, stop_time=time1)
 
-wizard = TimeStepWizard(cfl=0.3, max_Δt=0.05)
+wizard = TimeStepWizard(cfl=0.3, max_Δt=0.05seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
 # Print a progress message
