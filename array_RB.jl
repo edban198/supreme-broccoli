@@ -19,8 +19,8 @@ filename = "./OUTPUTS/RB_gpu_simulation_(Pr=$(Pr)_R=$(R))_without_wind"
 
 @info"Setting up model"
 
-const Nx = 256     # number of points in each of horizontal directions
-const Nz = 128          # number of points in the vertical direction
+const Nx = 128     # number of points in each of horizontal directions
+const Nz = 64          # number of points in the vertical direction
 
 const Lx = 8     # (m) domain horizontal extents
 const Lz = 4          # (m) domain depth
@@ -43,8 +43,8 @@ const t_ff = sqrt(Lz / (g * α * Δ))
 const t_ff_days = t_ff / (3600 * 24)
 @info "Freefall time in days ~ $t_ff_days"
 @info "Freefall time in seconds ~ $t_ff"
-const time1 = 3*t_ff  # instead of 24 hours
-const time2 = 4*t_ff  # or similar
+const time1 = 18hours  # instead of 24 hours
+const time2 = 24hours  # or similar
 
 #Bulk formula
 const ρₒ = 1026.0 # kg m⁻³, average density at the surface of the world ocean
@@ -108,7 +108,7 @@ outputs = (
     s = sqrt(model.velocities.u^2 + model.velocities.w^2)
 )
 
-const data_interval = 10seconds
+const data_interval = 1minute
 
 simulation.output_writers[:full_outputs] = JLD2OutputWriter(
     model, outputs,
