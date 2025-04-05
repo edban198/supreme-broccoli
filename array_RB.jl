@@ -9,8 +9,8 @@ using Statistics
 using Oceananigans
 using Oceananigans.Units: second, seconds, minute, minutes, hour, hours, day, days
 
-const χ = parse(Float64, ARGS[2])
-const R = 1100.65 * χ
+const χ = "pp"
+const R = parse(Float64, ARGS[2])     #1100.65 * χ
 const Pr = parse(Float64, ARGS[1])
 const κ = 1e-5
 const ν = Pr * κ
@@ -35,21 +35,22 @@ grid = RectilinearGrid(CPU(); size = (Nx, Nz),
 buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_salinity=0)
 
 #Set values
-const time1 = 1days
-const time2 = 2days
-
 const g = buoyancy.gravitational_acceleration
 const α = buoyancy.equation_of_state.thermal_expansion
 const Δ = ν * κ * R / (g * α * Lz^3)
+
+t_ff = sqrt(Lz / (g * α * Δ))
+t_ff_days = t_ff / (3600 * 24)
+@info "Freefall time in days ~ $t_ff_days"
+const time1 = 9*t_ff
+const time2 = 10*t_ff
+
 #Bulk formula
 const ρₒ = 1026.0 # kg m⁻³, average density at the surface of the world ocean
 const u₁₀ = 10    # m s⁻¹, average wind velocity 10 meters above the ocean
 const cᴰ = 2.5e-3 # dimensionless drag coefficient
 const ρₐ = 1.225  # kg m⁻³, average density of air at sea-level
 const τx = 0#(κ/Lz)^2 * ρₒ # m² s⁻²
-t_ff = sqrt(Lz / (g * α * Δ))
-t_ff_days = t_ff / (3600 * 24)
-@info "Freefall time in days ~ $t_ff_days"
 
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 
@@ -82,9 +83,9 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=0.5second, stop_time=time1)
+simulation = Simulation(model, Δt=0.1second, stop_time=time1)
 
-wizard = TimeStepWizard(cfl=0.3, max_Δt=1second)
+wizard = TimeStepWizard(cfl=0.3, max_Δt=0.1*t_ff)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
 # Print a progress message
@@ -108,7 +109,7 @@ outputs = (
     s = sqrt(model.velocities.u^2 + model.velocities.w^2)
 )
 
-const data_interval = 2minutes
+const data_interval = 1second
 
 simulation.output_writers[:full_outputs] = JLD2OutputWriter(
     model, outputs,
@@ -214,7 +215,7 @@ Nu = 1 + (Lz / (κ * Δ)) * avg_wT
 @info "Nu = $Nu"
 @info "R = $R"
 @info "R/R_c = $χ"
-@info "data for csv: $Pr,$τx,$Nu,$χ"
+@info "data for csv: $Pr,$R,$Nu,$τx"
 #=
 title = @lift "t = " * prettytime(times[$n]) * ", Nu = " * string(round(Nu, digits=3), ", R/R_c = $γ")
 Label(fig[1, :], title, fontsize = 24, tellwidth=true)
