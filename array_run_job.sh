@@ -15,7 +15,7 @@
 line_number=$SLURM_ARRAY_TASK_ID
 
 # Read Pr and R from the corresponding line in the CSV (skip header)
-read Pr_val R_val <<< $(awk -F, -v line=$line_number 'NR == line + 1 { print $1, $2 }' ~/CODE/supreme-broccoli/points_in_region_I.csv)
+read R_val Pr_val <<< $(awk -F, -v line=$line_number 'NR == line + 1 { print $1, $2 }' ~/CODE/supreme-broccoli/points_in_region_I.csv)
 
 echo "Running simulation with: Pr = $Pr_val, R = $R_val"
 
