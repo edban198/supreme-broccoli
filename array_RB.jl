@@ -73,17 +73,17 @@ model = NonhydrostaticModel(; grid, buoyancy,
 Ξ(x,z) = randn()
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
-Tᵢ(x, z) = Δ * (1 - z/Lz) + 1e-3 * Ξ(x, z)
-uᵢ(x, z) = 1e-3 * Ξ(x, z)
+Tᵢ(x, z) = Δ * (1 - z/Lz) + 1e-4 * Ξ(x, z)
+uᵢ(x, z) = 1e-4 * Ξ(x, z)
 
 # set the model fields using functions or constants:
 set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=0.5seconds, stop_time=time1)
+simulation = Simulation(model, Δt=0.1seconds, stop_time=time1)
 
-wizard = TimeStepWizard(cfl=0.3, max_Δt=1seconds)
+wizard = TimeStepWizard(cfl=0.3, max_Δt=0.5seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
 # Print a progress message
@@ -107,7 +107,7 @@ outputs = (
     s = sqrt(model.velocities.u^2 + model.velocities.w^2)
 )
 
-const data_interval = 1minute
+const data_interval = 5minutes
 
 simulation.output_writers[:full_outputs] = JLD2OutputWriter(
     model, outputs,
