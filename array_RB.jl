@@ -10,8 +10,8 @@ using Oceananigans
 using Oceananigans.Units: second, seconds, minute, minutes, hour, hours, day, days
 
 const χ = "pp"
-const R = round(parse(Float64, ARGS[2]))     #1100.65 * χ
-const Pr = round(parse(Float64, ARGS[1]))
+const R = round(parse(Float64, ARGS[2]), digits=3)     #1100.65 * χ
+const Pr = round(parse(Float64, ARGS[1]), digits=3)
 const κ = 1e-5
 const ν = Pr * κ
 
