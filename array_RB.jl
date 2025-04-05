@@ -43,8 +43,8 @@ const t_ff = sqrt(Lz / (g * α * Δ))
 const t_ff_days = t_ff / (3600 * 24)
 @info "Freefall time in days ~ $t_ff_days"
 @info "Freefall time in seconds ~ $t_ff"
-const time1 = 24hours
-const time2 = 36hours
+const time1 = 3*t_ff  # instead of 24 hours
+const time2 = 4*t_ff  # or similar
 
 #Bulk formula
 const ρₒ = 1026.0 # kg m⁻³, average density at the surface of the world ocean
@@ -73,7 +73,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
 Ξ(x,z) = randn()
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
-noise_amplitude = 1e-4 * Δ
+noise_amplitude = 1e-5 * Δ
 Tᵢ(x, z) = Δ * (1 - z/Lz) + noise_amplitude * Ξ(x, z)
 uᵢ(x, z) = noise_amplitude * Ξ(x, z)
 
@@ -84,7 +84,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 simulation = Simulation(model, Δt=0.01seconds, stop_time=time1)
 
-wizard = TimeStepWizard(cfl=0.3, max_Δt=0.05seconds)
+wizard = TimeStepWizard(cfl=0.3, max_Δt=0.02seconds)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
 # Print a progress message
@@ -108,7 +108,7 @@ outputs = (
     s = sqrt(model.velocities.u^2 + model.velocities.w^2)
 )
 
-const data_interval = 1second
+const data_interval = 10seconds
 
 simulation.output_writers[:full_outputs] = JLD2OutputWriter(
     model, outputs,
