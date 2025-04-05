@@ -39,9 +39,10 @@ const g = buoyancy.gravitational_acceleration
 const α = buoyancy.equation_of_state.thermal_expansion
 const Δ = ν * κ * R / (g * α * Lz^3)
 
-t_ff = sqrt(Lz / (g * α * Δ))
-t_ff_days = t_ff / (3600 * 24)
+const t_ff = sqrt(Lz / (g * α * Δ))
+const t_ff_days = t_ff / (3600 * 24)
 @info "Freefall time in days ~ $t_ff_days"
+@info "Freefall time in seconds ~ $t_ff"
 const time1 = 9*t_ff
 const time2 = 10*t_ff
 
@@ -72,10 +73,10 @@ model = NonhydrostaticModel(; grid, buoyancy,
 Ξ(x,z) = randn()
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
-Tᵢ(x, z) = Δ * (1 - z/Lz) + 1e-3* Ξ(x,z)
+Tᵢ(x, z) = Δ * (1 - z/Lz) + 1e-6 * Ξ(x,z)
 
 # Velocity initial condition:
-uᵢ(x, z) = 1e-3 * Ξ(x,z)
+uᵢ(x, z) = 1e-6 * Ξ(x,z)
 #uᵢ(x, z) = 0
 
 # set the model fields using functions or constants:
@@ -83,9 +84,9 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=0.1second, stop_time=time1)
+simulation = Simulation(model, Δt=0.01second, stop_time=time1)
 
-wizard = TimeStepWizard(cfl=0.3, max_Δt=0.1*t_ff)
+wizard = TimeStepWizard(cfl=0.3, max_Δt=0.05*t_ff)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
 # Print a progress message
