@@ -73,10 +73,10 @@ model = NonhydrostaticModel(; grid, buoyancy,
 Ξ(x,z) = randn()
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
-Tᵢ(x, z) = Δ * (1 - z/Lz) + 1e-7 * Ξ(x,z)
+Tᵢ(x, z) = Δ * (1 - z/Lz) + 1e-8 * Ξ(x,z)
 
 # Velocity initial condition:
-uᵢ(x, z) = 1e-7 * Ξ(x,z)
+uᵢ(x, z) = 1e-8 * Ξ(x,z)
 #uᵢ(x, z) = 0
 
 # set the model fields using functions or constants:
@@ -84,9 +84,9 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=0.05second, stop_time=time1)
+simulation = Simulation(model, Δt=0.01second, stop_time=time1)
 
-wizard = TimeStepWizard(cfl=0.3, max_Δt=0.08)
+wizard = TimeStepWizard(cfl=0.3, max_Δt=0.05)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
 # Print a progress message
