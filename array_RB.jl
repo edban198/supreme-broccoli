@@ -15,7 +15,7 @@ const Pr = parse(Float64, ARGS[1])
 const κ = 1e-5
 const ν = Pr * κ
 
-filename = "./OUTPUTS/RB_gpu_simulation_(Pr=$(Pr)_chi=$(χ))_without_wind"
+filename = "./OUTPUTS/RB_gpu_simulation_(Pr=$(Pr)_R=$(R))_without_wind"
 
 @info"Setting up model"
 
