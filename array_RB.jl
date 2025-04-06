@@ -55,7 +55,7 @@ const τx = 0#(κ/Lz)^2 * ρₒ # m² s⁻²
 
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 
-u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx), bottom = ValueBoundaryCondition(0))
+u_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(τx), bottom = ValueBoundaryCondition(0))
 
 closure = ScalarDiffusivity(ν=ν,κ=κ)
 
@@ -73,7 +73,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
 Ξ(x,z) = randn()
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
-noise_amplitude = min(1e-4 * Δ, 1e-6)
+noise_amplitude = 1e-1 * Δ
 Tᵢ(x, z) = Δ * (1 - z/Lz) + noise_amplitude * Ξ(x, z)
 uᵢ(x, z) = noise_amplitude * Ξ(x, z)
 
@@ -83,8 +83,8 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 # Setting up sim
 
 if Pr < 1e-3
-    Δt = 0.025seconds
-    max_Δt = 0.05seconds
+    Δt = 0.05seconds
+    max_Δt = 0.1seconds
 elseif Pr < 0.1
     Δt = 0.05seconds
     max_Δt = 0.25seconds
@@ -94,7 +94,7 @@ else
 end
 
 simulation = Simulation(model, Δt=Δt, stop_time=time1)
-wizard = TimeStepWizard(cfl=0.3, max_Δt=max_Δt)
+wizard = TimeStepWizard(cfl=0.2, max_Δt=max_Δt)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
 # Print a progress message
