@@ -89,8 +89,8 @@ elseif Pr < 0.1
     Δt = 0.05seconds
     max_Δt = 0.25seconds
 else
-    Δt = 0.1seconds
-    max_Δt = 0.5seconds
+    Δt = 0.05seconds
+    max_Δt = 0.2seconds
 end
 
 simulation = Simulation(model, Δt=Δt, stop_time=time1)
