@@ -89,12 +89,12 @@ elseif Pr < 0.1
     Δt = 0.05seconds
     max_Δt = 0.25seconds
 else
-    Δt = 0.25seconds
+    Δt = 0.1seconds
     max_Δt = 0.5seconds
 end
 
 simulation = Simulation(model, Δt=Δt, stop_time=time1)
-wizard = TimeStepWizard(cfl=0.2, max_Δt=max_Δt)
+wizard = TimeStepWizard(cfl=0.15, max_Δt=max_Δt)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
 # Print a progress message
