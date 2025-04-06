@@ -83,14 +83,14 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 # Setting up sim
 
 if Pr < 1e-3
+    Δt = 0.05seconds
+    max_Δt = 0.1seconds
+elseif Pr < 0.1
+    Δt = 0.1seconds
+    max_Δt = 0.5seconds
+else
     Δt = 0.5seconds
     max_Δt = 1seconds
-elseif Pr < 0.1
-    Δt = 1seconds
-    max_Δt = 2seconds
-else
-    Δt = 1seconds
-    max_Δt = 2seconds
 end
 
 simulation = Simulation(model, Δt=Δt, stop_time=time1)

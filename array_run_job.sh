@@ -5,7 +5,7 @@
 #SBATCH -p cpu
 #SBATCH --qos=short
 #SBATCH -t 2-00:00:00
-#SBATCH --array=1-79%64
+#SBATCH --array=1-86%64
 #SBATCH -o RB_sim_%A_%a.out
 #SBATCH -e RB_sim_%A_%a.err
 #SBATCH --mail-type=ALL
