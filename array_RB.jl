@@ -19,8 +19,8 @@ filename = "./OUTPUTS/RB_gpu_simulation_(Pr=$(Pr)_R=$(R))_without_wind"
 
 @info"Setting up model"
 
-const Nx = 128     # number of points in each of horizontal directions
-const Nz = 64          # number of points in the vertical direction
+const Nx = 256     # number of points in each of horizontal directions
+const Nz = 128          # number of points in the vertical direction
 
 const Lx = 8     # (m) domain horizontal extents
 const Lz = 4          # (m) domain depth
@@ -83,14 +83,14 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 # Setting up sim
 
 if Pr < 1e-3
-    Δt = 0.005seconds
-    max_Δt = 0.01seconds
+    Δt = 0.5seconds
+    max_Δt = 1seconds
 elseif Pr < 0.1
-    Δt = 0.01seconds
-    max_Δt = 0.02seconds
+    Δt = 1seconds
+    max_Δt = 2seconds
 else
-    Δt = 0.02seconds
-    max_Δt = 0.05seconds
+    Δt = 1seconds
+    max_Δt = 2seconds
 end
 
 simulation = Simulation(model, Δt=Δt, stop_time=time1)
