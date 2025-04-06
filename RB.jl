@@ -9,16 +9,20 @@ using Statistics
 using Oceananigans
 using Oceananigans.Units: second, seconds, minute, minutes, hour, hours, day, days
 
-const γ = 5
-const R = 1707.76 * γ
-filename = "./OUTPUTS/RB_gpu_simulation"
+const χ = "pp"
+const R = 19564838108.594536    #1100.65 * χ
+const Pr = 0.7299796972650259
+const κ = 1e-5
+const ν = Pr * κ
+
+filename = "./OUTPUTS/RB_gpu_simulation_(Pr=$(Pr)_R=$(R))_without_wind"
 
 @info"Setting up model"
 
-const Nx = 256     # number of points in each of horizontal directions
-const Nz = 128          # number of points in the vertical direction
+const Nx = 128     # number of points in each of horizontal directions
+const Nz = 64          # number of points in the vertical direction
 
-const Lx = 16     # (m) domain horizontal extents
+const Lx = 8     # (m) domain horizontal extents
 const Lz = 4          # (m) domain depth
 
 grid = RectilinearGrid(CPU(); size = (Nx, Nz),
@@ -31,23 +35,27 @@ grid = RectilinearGrid(CPU(); size = (Nx, Nz),
 buoyancy = SeawaterBuoyancy(equation_of_state=LinearEquationOfState(), constant_salinity=0)
 
 #Set values
-const time1 = 10minutes
-const time2 = 12hours
-
-const Pr = 6.8
-const ν = 1e-3
-const κ = ν / Pr
 const g = buoyancy.gravitational_acceleration
 const α = buoyancy.equation_of_state.thermal_expansion
 const Δ = ν * κ * R / (g * α * Lz^3)
-const τx = 0
-t_ff = sqrt(Lz / (g * α * Δ))
-t_ff_days = t_ff / (3600 * 24)
+
+const t_ff = sqrt(Lz / (g * α * Δ))
+const t_ff_days = t_ff / (3600 * 24)
 @info "Freefall time in days ~ $t_ff_days"
+@info "Freefall time in seconds ~ $t_ff"
+const time1 = 18hours  # instead of 24 hours
+const time2 = 24hours  # or similar
+
+#Bulk formula
+const ρₒ = 1026.0 # kg m⁻³, average density at the surface of the world ocean
+const u₁₀ = 10    # m s⁻¹, average wind velocity 10 meters above the ocean
+const cᴰ = 2.5e-3 # dimensionless drag coefficient
+const ρₐ = 1.225  # kg m⁻³, average density of air at sea-level
+const τx = 0#(κ/Lz)^2 * ρₒ # m² s⁻²
 
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 
-u_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(τx), bottom = ValueBoundaryCondition(0))
+u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx), bottom = ValueBoundaryCondition(0))
 
 closure = ScalarDiffusivity(ν=ν,κ=κ)
 
@@ -65,20 +73,28 @@ model = NonhydrostaticModel(; grid, buoyancy,
 Ξ(x,z) = randn()
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
-Tᵢ(x, z) = Δ * (1 - z/Lz) + 1e-6 * Ξ(x,z)
-
-# Velocity initial condition:
-uᵢ(x, z) = 1e-3 * Ξ(x,z)
-#uᵢ(x, z) = 0
+noise_amplitude = min(1e-4 * Δ, 1e-6)
+Tᵢ(x, z) = Δ * (1 - z/Lz) + noise_amplitude * Ξ(x, z)
+uᵢ(x, z) = noise_amplitude * Ξ(x, z)
 
 # set the model fields using functions or constants:
 set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=0.1second, stop_time=time1)
+if Pr < 1e-3
+    Δt = 0.5seconds
+    max_Δt = 1seconds
+elseif Pr < 0.1
+    Δt = 1seconds
+    max_Δt = 2seconds
+else
+    Δt = 1seconds
+    max_Δt = 2seconds
+end
 
-wizard = TimeStepWizard(cfl=0.2, max_Δt=0.2seconds)
+simulation = Simulation(model, Δt=Δt, stop_time=time1)
+wizard = TimeStepWizard(cfl=0.3, max_Δt=max_Δt)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
 # Print a progress message
@@ -93,7 +109,6 @@ add_callback!(simulation, progress_message, IterationInterval(100))
 @info "running sim..."
 run!(simulation)
 
-
 # OUTPUTS
 outputs = (
     w = model.velocities.w,
@@ -103,7 +118,7 @@ outputs = (
     s = sqrt(model.velocities.u^2 + model.velocities.w^2)
 )
 
-const data_interval = 2minutes
+const data_interval = 5minutes
 
 simulation.output_writers[:full_outputs] = JLD2OutputWriter(
     model, outputs,
@@ -208,9 +223,9 @@ Nu = 1 + (Lz / (κ * Δ)) * avg_wT
 @info "Pr = $Pr"
 @info "Nu = $Nu"
 @info "R = $R"
-@info "R/R_c = $γ"
-@info "data for csv: $γ,$τx,$Nu"
-
+@info "R/R_c = $χ"
+@info "data for csv: $Pr,$R,$Nu,$τx"
+#=
 title = @lift "t = " * prettytime(times[$n]) * ", Nu = " * string(round(Nu, digits=3), ", R/R_c = $γ")
 Label(fig[1, :], title, fontsize = 24, tellwidth=true)
 
@@ -220,7 +235,7 @@ frames = 1:length(times)
 record(fig, filename * ".mp4", frames, framerate=16) do i
     n[] = i
 end
-
+=#
 #=
 # Compute mean wT over x, y, z
 wT_avg_timeseries_2 = mean(wT_timeseries, dims=(1,2,3))  
@@ -245,34 +260,7 @@ lines!(ax_Nu, times_days, Nu)
 save("./OUTPUTS/Nusselt_number_vs_time.png", fig_Nu)
 =#
 
-@info "plotting polished time snapshots"
-
-wanted_times = [1hour, 2hours, 12hours]
-timestamps = [findfirst(t -> isapprox(t, wt; atol=1e-6), times) for wt in wanted_times]
-
-n = length(timestamps)
-fig_snap = Figure(size=(2400, 1200))  # or adjust to your liking
-
-titles = [L"Temperature, $T$", L"Speed $s = \sqrt{u^2+v^2}$", L"Verticle velocity, $w$", L"Horizontal velocity, $u$"]
-fields = [T_timeseries, s_timeseries, w_timeseries, u_timeseries]
-lims = [Tlims, slims, wlims, ulims]
-cmaps = [:thermometer, :speed, :speed, :speed]
-labels = ["(°C)", "(m/s)", "(m/s)", "(m/s)"]
-
-for row in 1:4
-    for (col, t_idx) in enumerate(timestamps)
-        time_label = prettytime(times[t_idx])
-        ax = Axis(fig_snap[row, col];
-                  title = L"%$(titles[row]) at %$time_label",
-                  xlabel = "x (m)", ylabel = "z (m)",
-                  aspect = DataAspect())
-        hm = heatmap!(ax, fields[row][t_idx];
-                      colormap = cmaps[row],
-                      colorrange = lims[row])
-        if col == n  # only add one colorbar at the end
-            Colorbar(fig_snap[row, n+1], hm, label = labels[row])
-        end
-    end
+if isfile(filename * ".jld2")
+    rm(filename * ".jld2"; force=true)
+    @info "Deleted file: " * (filename * ".jld2")
 end
-
-save(filename * "_snapshots.png", fig_snap)
