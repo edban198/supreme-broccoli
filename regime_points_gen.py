@@ -14,11 +14,11 @@ def in_region(x, y):
     #   Condition 3: y > 3.5e-8 * x^(1.5)
     #   Condition 4: y < 1.0e22 * x^(-2)
     #   Condition 5: y < 2
-    cond1 = y < 6.7e-5 * (x ** (2/3))
-    cond2 = y > 4.3e-8 * (x ** (2/3))
-    cond3 = y > (3.5 * 10 ** (3/2)) * (x ** (-2))
-    cond4 = y < 1.0e22 * (x ** (-2))
-    cond5 = y < 2
+    cond1 = y <= 6.7e-5 * (x ** (2/3))
+    cond2 = y >= 4.3e-8 * (x ** (2/3))
+    cond3 = y >= (3.5 * 10 ** (3/2)) * (x ** (-2))
+    cond4 = y <= 1.0e22 * (x ** (-2))
+    cond5 = y <= 2
     return cond1 and cond2 and cond3 and cond4 and cond5
 
 # ============================================================================
@@ -26,7 +26,7 @@ def in_region(x, y):
 #    (These are our initial guesses; the actual region will be determined by in_region.)
 # ============================================================================
 # For x = R, we want log10(R) from 5 to 10, i.e. R in [1e5, 1e10]
-X_MIN = 1207.11172
+X_MIN = 1707.76
 X_MAX = 1.02908e11
 X_MIN_LOG10 = np.log10(X_MIN)  # Convert to log-space
 X_MAX_LOG10 = np.log10(X_MAX)  # Convert to log-space
@@ -38,8 +38,8 @@ Y_MIN_LOG10 = np.log10(Y_MIN)  # Convert to log-space
 Y_MAX_LOG10 = np.log10(Y_MAX)  # Convert to log-space
 
 # Number of steps in each dimension; adjust these to control density:
-NUM_X = 12
-NUM_Y = 12
+NUM_X = 12 # Number of points in log-space for R
+NUM_Y = 12 # Number of points in log-space for Pr
 
 # ============================================================================
 # 3) Create the grid in log-space and filter the points using in_region
@@ -75,11 +75,20 @@ else:
 # ============================================================================
 # 5) Write the valid points to a CSV file
 # ============================================================================
-out_filename = "points_in_region_I.csv"
-with open(out_filename, "w", newline="") as f:
+# --- Compute cost and sort the points ---
+# points_in_region is a list of tuples: (R, Pr)
+# We'll compute cost = R / Pr as our metric.
+points_with_cost = [(R_val, Pr_val, R_val / Pr_val) for (R_val, Pr_val) in points_in_region]
+
+# Sort by cost in descending order (largest cost first)
+sorted_points = sorted(points_with_cost, key=lambda x: x[2], reverse=True)
+
+# Write the sorted points to a CSV file
+out_filename_sorted = "points_in_region_I.csv"
+with open(out_filename_sorted, "w", newline="") as f:
     writer = csv.writer(f)
-    writer.writerow(["R", "Pr"])  # header
-    for pt in points_in_region:
+    writer.writerow(["R", "Pr", "Cost"])
+    for pt in sorted_points:
         writer.writerow(pt)
 
-print(f"Wrote {len(points_in_region)} points to {out_filename}")
+print(f"Wrote {len(sorted_points)} sorted points to {out_filename_sorted}")
