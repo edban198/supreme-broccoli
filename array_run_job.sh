@@ -1,11 +1,11 @@
 #!/bin/bash
 #SBATCH --job-name=RB_sim
 #SBATCH -N 1
-#SBATCH -c 1
+#SBATCH -c 8
 #SBATCH -p cpu
 #SBATCH --qos=short
 #SBATCH -t 2-00:00:00
-#SBATCH --array=0-215%64
+#SBATCH --array=1-28%8
 #SBATCH -o RB_sim_%A_%a.out
 #SBATCH -e RB_sim_%A_%a.err
 #SBATCH --mail-type=ALL
