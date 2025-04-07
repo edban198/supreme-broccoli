@@ -8,6 +8,8 @@ using LaTeXStrings
 using Statistics
 using Oceananigans
 using Oceananigans.Units: second, seconds, minute, minutes, hour, hours, day, days
+using Base.Threads
+@info "Number of Julia threads: $(nthreads())"
 
 const χ = "pp"
 const R = parse(Float64, ARGS[2])    #1100.65 * χ
