@@ -1,30 +1,23 @@
 #!/bin/bash
 #SBATCH --job-name=RB_sim
 #SBATCH -N 1
-#SBATCH -c 8
+#SBATCH -c 1
 #SBATCH -p cpu
 #SBATCH --qos=short
 #SBATCH -t 2-00:00:00
-#SBATCH --array=1-28%8
+#SBATCH --array=1-64
 #SBATCH -o RB_sim_%A_%a.out
 #SBATCH -e RB_sim_%A_%a.err
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user sfbj55@durham.ac.uk
+#SBATCH --mail-user=sfbj55@durham.ac.uk
 
-Prs=(1 7)
-CHIS=(1 1.1 1.2 1.4 2 3 4 6 10 15 20 30 40 50)
+# Get line number based on SLURM_ARRAY_TASK_ID
+line_number=$SLURM_ARRAY_TASK_ID
 
-N_Prs=${#Prs[@]}
-N_Chis=${#CHIS[@]}
+# Read Pr and R from the corresponding line in the CSV (skip header)
+read R_val Pr_val <<< $(awk -F, -v line=$line_number 'NR == line + 1 { print $1, $2 }' ~/CODE/supreme-broccoli/points_in_region_I.csv)
 
-# Convert SLURM_ARRAY_TASK_ID to 0-indexed index
-index=$((SLURM_ARRAY_TASK_ID - 1))
-Pr_index=$(( index % N_Prs ))
-Chi_index=$(( index / N_Prs ))
+echo "Running simulation with: Pr = $Pr_val, R = $R_val"
 
-Pr_val=${Prs[$Pr_index]}
-Chi_val=${CHIS[$Chi_index]}
-
-echo "Running: Pr = $Pr_val, chi = $Chi_val"
-
-~/julia-1.11.2/bin/julia --threads=$SLURM_CPUS_PER_TASK ~/CODE/supreme-broccoli/array_RB.jl $Pr_val $Chi_val
+# Run Julia script (now expects Pr and R)
+~/julia-1.11.2/bin/julia ~/CODE/supreme-broccoli/array_RB_temp.jl $Pr_val $R_val
