@@ -82,16 +82,41 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-if Pr < 1e-3
-    Δt = 0.05seconds
-    max_Δt = 0.1seconds
-elseif Pr < 0.1
-    Δt = 0.05seconds
-    max_Δt = 0.25seconds
-else
-    Δt = 0.05seconds
-    max_Δt = 0.2seconds
+function compute_timesteps(Pr::Float64, R::Float64, Lx, Lz, Nx, Nz, κ)
+    # Compute viscosity:
+    ν = Pr * κ
+
+    # Grid spacing
+    Δx = Lx / Nx
+    Δz = Lz / Nz
+
+    # Free-fall timescale estimate:
+    # Derived as: t_ff = Lz^2 / (κ * sqrt(Pr * R))
+    t_ff = Lz^2 / (κ * sqrt(Pr * R))
+    C_ff = 0.1  # safety factor for free-fall based timestep
+    Δt_ff = C_ff * t_ff
+    max_Δt_ff = 2 * Δt_ff  # allow the wizard to choose up to 2× the base value
+
+    # Diffusive stability limit:
+    Δt_diff = 0.25 * (min(Δx, Δz)^2) / ν
+    max_Δt_diff = 2 * Δt_diff
+
+    # Choose the most restrictive:
+    Δt_calc = min(Δt_ff, Δt_diff)
+    max_Δt_calc = min(max_Δt_ff, max_Δt_diff)
+
+    # Optionally, clamp to reasonable bounds (in seconds):
+    Δt = clamp(Δt_calc, 0.001, 1.0)
+    max_Δt = clamp(max_Δt_calc, 0.002, 2.0)
+
+    @printf("For Pr = %.3e and R = %.3e:\n", Pr, R)
+    @printf("  Free-fall time t_ff = %.3e s\n", t_ff)
+    @printf("  Δt (chosen) = %.3e s\n", Δt)
+    @printf("  max_Δt (chosen) = %.3e s\n", max_Δt)
+    
+    return Δt, max_Δt
 end
+Δt, max_Δt = compute_timesteps(Pr, R, Lx, Lz, Nx, Nz, κ)
 
 simulation = Simulation(model, Δt=Δt, stop_time=time1)
 wizard = TimeStepWizard(cfl=0.15, max_Δt=max_Δt)
