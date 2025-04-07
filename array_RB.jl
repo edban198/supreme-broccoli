@@ -91,8 +91,8 @@ function compute_timesteps(Pr::Float64)
         max_Δt = 2.0  # maximum allowable timestep
     elseif Pr == 7.0
         # For Pr = 7, use a slightly smaller timestep (based on worst-case diffusive stability, e.g. at high χ)
-        Δt = 0.87     # chosen timestep (seconds)
-        max_Δt = 1.74 # maximum allowable timestep (seconds)
+        Δt = 0.1     # chosen timestep (seconds)
+        max_Δt = 1 # maximum allowable timestep (seconds)
     else
         error("Unsupported Pr value: $Pr. Only Pr = 1 and Pr = 7 are supported.")
     end
