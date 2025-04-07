@@ -8,9 +8,11 @@ using LaTeXStrings
 using Statistics
 using Oceananigans
 using Oceananigans.Units: second, seconds, minute, minutes, hour, hours, day, days
+using Base.Threads
+@info "Number of Julia threads: $(nthreads())"
 
-const χ = "pp"
-const R = parse(Float64, ARGS[2])    #1100.65 * χ
+const χ = parse(Float64, ARGS[2])
+const R = 1707.76 * χ
 const Pr = parse(Float64, ARGS[1])
 const κ = 1e-5
 const ν = Pr * κ
@@ -19,8 +21,8 @@ filename = "./OUTPUTS/RB_gpu_simulation_(Pr=$(Pr)_R=$(R))_without_wind"
 
 @info"Setting up model"
 
-const Nx = 256     # number of points in each of horizontal directions
-const Nz = 128          # number of points in the vertical direction
+const Nx = 512     # number of points in each of horizontal directions
+const Nz = 256          # number of points in the vertical direction
 
 const Lx = 8     # (m) domain horizontal extents
 const Lz = 4          # (m) domain depth
@@ -82,41 +84,23 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-function compute_timesteps(Pr::Float64, R::Float64, Lx, Lz, Nx, Nz, κ)
-    # Compute viscosity:
-    ν = Pr * κ
-
-    # Grid spacing
-    Δx = Lx / Nx
-    Δz = Lz / Nz
-
-    # Free-fall timescale estimate:
-    # Derived as: t_ff = Lz^2 / (κ * sqrt(Pr * R))
-    t_ff = Lz^2 / (κ * sqrt(Pr * R))
-    C_ff = 0.1  # safety factor for free-fall based timestep
-    Δt_ff = C_ff * t_ff
-    max_Δt_ff = 2 * Δt_ff  # allow the wizard to choose up to 2× the base value
-
-    # Diffusive stability limit:
-    Δt_diff = 0.25 * (min(Δx, Δz)^2) / ν
-    max_Δt_diff = 2 * Δt_diff
-
-    # Choose the most restrictive:
-    Δt_calc = min(Δt_ff, Δt_diff)
-    max_Δt_calc = min(max_Δt_ff, max_Δt_diff)
-
-    # Optionally, clamp to reasonable bounds (in seconds):
-    Δt = clamp(Δt_calc, 0.001, 1.0)
-    max_Δt = clamp(max_Δt_calc, 0.002, 2.0)
-
-    @printf("For Pr = %.3e and R = %.3e:\n", Pr, R)
-    @printf("  Free-fall time t_ff = %.3e s\n", t_ff)
-    @printf("  Δt (chosen) = %.3e s\n", Δt)
-    @printf("  max_Δt (chosen) = %.3e s\n", max_Δt)
-    
+function compute_timesteps(Pr::Float64)
+    if Pr == 1.0
+        # For Pr = 1 we choose fixed values (in seconds)
+        Δt = 1.0      # chosen timestep
+        max_Δt = 2.0  # maximum allowable timestep
+    elseif Pr == 7.0
+        # For Pr = 7, use a slightly smaller timestep (based on worst-case diffusive stability, e.g. at high χ)
+        Δt = 0.87     # chosen timestep (seconds)
+        max_Δt = 1.74 # maximum allowable timestep (seconds)
+    else
+        error("Unsupported Pr value: $Pr. Only Pr = 1 and Pr = 7 are supported.")
+    end
+    @printf("For Pr = %.3e: Δt (chosen) = %.3e s, max_Δt = %.3e s\n", Pr, Δt, max_Δt)
     return Δt, max_Δt
 end
-Δt, max_Δt = compute_timesteps(Pr, R, Lx, Lz, Nx, Nz, κ)
+
+Δt, max_Δt = compute_timesteps(Pr)
 
 simulation = Simulation(model, Δt=Δt, stop_time=time1)
 wizard = TimeStepWizard(cfl=0.15, max_Δt=max_Δt)
@@ -137,10 +121,10 @@ run!(simulation)
 # OUTPUTS
 outputs = (
     w = model.velocities.w,
-    u = model.velocities.u,
+    #u = model.velocities.u,
     T = model.tracers.T,
     #avg_T = mean(model.tracers.T, dims=(1,2)),
-    s = sqrt(model.velocities.u^2 + model.velocities.w^2)
+    #s = sqrt(model.velocities.u^2 + model.velocities.w^2)
 )
 
 const data_interval = 5minutes
@@ -159,19 +143,17 @@ run!(simulation)
 @info"Plotting animation"
 
 T_timeseries = FieldTimeSeries(filename * ".jld2", "T")
-s_timeseries = FieldTimeSeries(filename * ".jld2", "s")
+#s_timeseries = FieldTimeSeries(filename * ".jld2", "s")
 w_timeseries = FieldTimeSeries(filename * ".jld2", "w")
-u_timeseries = FieldTimeSeries(filename * ".jld2", "u")
+#u_timeseries = FieldTimeSeries(filename * ".jld2", "u")
 #avg_T_timeseries = FieldTimeSeries(filename * ".jld2", "avg_T")
 times = T_timeseries.times
+#=
+#set_theme!(Theme(fontsize = 24))
 
-set_theme!(Theme(fontsize = 24))
+#fig = Figure(size = (1600,2000))
 
-fig = Figure(size = (1600,2000))
-
-axis_kwargs = (xlabel = "x (m)", ylabel = "z (m)",
-               aspect = DataAspect()
-)
+#axis_kwargs = (xlabel = "x (m)", ylabel = "z (m)", aspect = DataAspect())
 
 ax_T = Axis(fig[2,1]; title = L"Temperature, $T$", axis_kwargs...)
 ax_s = Axis(fig[3,1]; title = L"Speed, $s = \sqrt{u^2+v^2}$", axis_kwargs...)
@@ -191,12 +173,7 @@ Tlims = (minimum(abs, interior(T_timeseries)), maximum(abs, interior(T_timeserie
 slims = (minimum(abs, interior(s_timeseries)), maximum(abs, interior(s_timeseries)))
 wlims = (minimum(interior(w_timeseries)), maximum(abs, interior(w_timeseries)))
 ulims = (minimum(interior(u_timeseries)), maximum(abs, interior(u_timeseries)))
-#=
-xlims!(ax_avg_T, Tlims)
-ylims!(ax_avg_T, 0, Lz)
-z_vec = LinRange(0, Lz, Nz)
-lines!(ax_avg_Tavg_T, color=:red)
-=#
+
 hm_T = heatmap!(ax_T, T; colormap = :thermometer, colorrange = Tlims)
 Colorbar(fig[2,2], hm_T)
 hm_s = heatmap!(ax_s, s; colormap = :speed, colorrange = slims)
@@ -205,6 +182,7 @@ hm_w = heatmap!(ax_w, w; colormap = :speed, colorrange = wlims)
 Colorbar(fig[4,2], hm_w)
 hm_u = heatmap!(ax_u, u; colormap = :speed, colorrange = ulims)
 Colorbar(fig[5,2], hm_u)
+=#
 #=
 using Interpolations
 
@@ -232,7 +210,7 @@ lines!(ax_wT, wT_avg, color=:red)
 =#
 @info "calculating Nusselt number"
 #Nusselt num
-w_timeseries = FieldTimeSeries(filename * ".jld2", "w")
+
 zrange = axes(w_timeseries, 3)  # the actual valid indices in the 3rd dimension
 w_center_timeseries = 0.5 .* (
     w_timeseries[:, :, zrange[1:end-1], :] .+ w_timeseries[:, :, zrange[2:end], :]
@@ -249,7 +227,7 @@ Nu = 1 + (Lz / (κ * Δ)) * avg_wT
 @info "Nu = $Nu"
 @info "R = $R"
 @info "R/R_c = $χ"
-@info "data for csv: $Pr,$R,$Nu,$τx"
+@info "data for csv: $Pr,$R,$Nu,$τx,$χ"
 #=
 title = @lift "t = " * prettytime(times[$n]) * ", Nu = " * string(round(Nu, digits=3), ", R/R_c = $γ")
 Label(fig[1, :], title, fontsize = 24, tellwidth=true)
