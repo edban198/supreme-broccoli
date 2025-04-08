@@ -20,4 +20,4 @@ read R_val Pr_val <<< $(awk -F, -v line=$line_number 'NR == line + 1 { print $1,
 echo "Running simulation with: Pr = $Pr_val, R = $R_val"
 
 # Run Julia script (now expects Pr and R)
-~/julia-1.11.2/bin/julia ~/CODE/supreme-broccoli/array_RB_temp.jl $Pr_val $R_val
+~/julia-1.11.2/bin/julia ~/CODE/supreme-broccoli/array_RB.jl $Pr_val $R_val
