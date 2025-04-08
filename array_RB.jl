@@ -12,17 +12,17 @@ using Base.Threads
 @info "Number of Julia threads: $(nthreads())"
 
 const χ = parse(Float64, ARGS[2])
-const R =  1707.76 * χ
+const R =  1100.65 * χ #flux at top boundary
 const Pr = parse(Float64, ARGS[1])
 const κ = 5e-4
 const ν = Pr * κ
 
-filename = "./OUTPUTS/RB_gpu_simulation_(Pr=$(Pr)_R=$(R))_without_wind"
+filename = "./OUTPUTS/RB_gpu_simulation_(Pr=$(Pr)_R=$(R))"
 
 @info"Setting up model"
 
-const Nx = 512     # number of points in each of horizontal directions
-const Nz = 256          # number of points in the vertical direction
+const Nx = 64     # number of points in each of horizontal directions
+const Nz = 32          # number of points in the vertical direction
 
 const Lx = 8     # (m) domain horizontal extents
 const Lz = 4          # (m) domain depth
@@ -53,11 +53,11 @@ const ρₒ = 1026.0 # kg m⁻³, average density at the surface of the world oc
 const u₁₀ = 10    # m s⁻¹, average wind velocity 10 meters above the ocean
 const cᴰ = 2.5e-3 # dimensionless drag coefficient
 const ρₐ = 1.225  # kg m⁻³, average density of air at sea-level
-const τx = 0#(κ/Lz)^2 * ρₒ # m² s⁻²
+const τx = parse(Float64, ARGS[3]) #(κ/Lz)^2 * ρₒ # m² s⁻²
 
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 
-u_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(τx), bottom = ValueBoundaryCondition(0))
+u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx), bottom = ValueBoundaryCondition(0))
 
 closure = ScalarDiffusivity(ν=ν,κ=κ)
 
@@ -93,8 +93,8 @@ function compute_timesteps(Pr::Float64)
         Δt = 0.05seconds
         max_Δt = 0.25seconds
     else
-        Δt = 0.01seconds
-        max_Δt = 0.02seconds
+        Δt = 0.5seconds
+        max_Δt = 1seconds
     end
     @printf("For Pr = %.3e: Δt (chosen) = %.3e s, max_Δt = %.3e s\n", Pr, Δt, max_Δt)
     return Δt, max_Δt
