@@ -100,10 +100,10 @@ function compute_timesteps(Pr::Float64)
     return Δt, max_Δt
 end
 
-Δt, max_Δt = compute_timesteps(Pr)
+#Δt, max_Δt = compute_timesteps(Pr)
 
-simulation = Simulation(model, Δt=Δt, stop_time=time1)
-wizard = TimeStepWizard(cfl=0.1, max_Δt=max_Δt)
+simulation = Simulation(model, Δt=0.5, stop_time=time1)
+wizard = TimeStepWizard(cfl=0.1, max_Δt=1)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(10))
 
 # Print a progress message
