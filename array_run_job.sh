@@ -24,6 +24,9 @@ Chi_index=$((index / N_Prs))
 Pr_val=${Prs[$Pr_index]}
 Chi_val=${Chis[$Chi_index]}
 
+echo "SLURM_ARRAY_TASK_ID: $SLURM_ARRAY_TASK_ID"
+echo "Pr_index: $Pr_index, Chi_index: $Chi_index"
+echo "Pr_val: $Pr_val, Chi_val: $Chi_val"
 echo "Running: Pr = $Pr_val, chi = $Chi_val"
 
 ~/julia-1.11.2/bin/julia --threads=$SLURM_CPUS_PER_TASK ~/CODE/supreme-broccoli/array_RB.jl $Pr_val $Chi_val
