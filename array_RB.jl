@@ -93,8 +93,8 @@ function compute_timesteps(Pr::Float64)
         Δt = 0.05seconds
         max_Δt = 0.25seconds
     else
-        Δt = 0.05seconds
-        max_Δt = 0.1seconds
+        Δt = 0.01seconds
+        max_Δt = 0.02seconds
     end
     @printf("For Pr = %.3e: Δt (chosen) = %.3e s, max_Δt = %.3e s\n", Pr, Δt, max_Δt)
     return Δt, max_Δt
