@@ -102,8 +102,8 @@ end
 
 #Δt, max_Δt = compute_timesteps(Pr)
 
-simulation = Simulation(model, Δt=0.1, stop_time=time1)
-wizard = TimeStepWizard(cfl=0.1, max_Δt=0.2)
+simulation = Simulation(model, Δt=1, stop_time=time1)
+wizard = TimeStepWizard(cfl=0.1, max_Δt=1)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(10))
 
 # Print a progress message
