@@ -15,16 +15,17 @@ Prs=(1 7)
 CHIS=(1 1.1 1.2 1.4 2 3 4 6 10 15 20 30 40 50)
 
 N_Prs=${#Prs[@]}
-N_Chis=${#Chis[@]}
+N_Chis=${#CHIS[@]}
 
-index=$SLURM_ARRAY_TASK_ID
-Pr_index=$((index % N_Prs))
-Chi_index=$((index / N_Prs))
+index=$(($SLURM_ARRAY_TASK_ID - 1))
+Pr_index=$(( index % N_Prs ))
+Chi_index=$(( index / N_Prs ))
 
 Pr_val=${Prs[$Pr_index]}
-Chi_val=${Chis[$Chi_index]}
+Chi_val=${CHIS[$Chi_index]}
 
 echo "SLURM_ARRAY_TASK_ID: $SLURM_ARRAY_TASK_ID"
+echo "Converted index: $index"
 echo "Pr_index: $Pr_index, Chi_index: $Chi_index"
 echo "Pr_val: $Pr_val, Chi_val: $Chi_val"
 echo "Running: Pr = $Pr_val, chi = $Chi_val"
