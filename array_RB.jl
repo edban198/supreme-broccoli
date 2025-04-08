@@ -11,10 +11,10 @@ using Oceananigans.Units: second, seconds, minute, minutes, hour, hours, day, da
 using Base.Threads
 @info "Number of Julia threads: $(nthreads())"
 
-const χ = parse(Float64, ARGS[2])
-const R = 1707.76 * χ
+const χ = "pp"
+const R = parse(Float64, ARGS[2]) #1707.76 * χ
 const Pr = parse(Float64, ARGS[1])
-const κ = 5e-3
+const κ = 5e-4
 const ν = Pr * κ
 
 filename = "./OUTPUTS/RB_gpu_simulation_(Pr=$(Pr)_R=$(R))_without_wind"
