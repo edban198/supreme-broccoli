@@ -14,7 +14,7 @@ using Base.Threads
 const χ = parse(Float64, ARGS[2])
 const R = 1707.76 * χ
 const Pr = parse(Float64, ARGS[1])
-const κ = 1e-4
+const κ = 1e-3
 const ν = Pr * κ
 
 filename = "./OUTPUTS/RB_gpu_simulation_(Pr=$(Pr)_R=$(R))_without_wind"
@@ -75,10 +75,10 @@ model = NonhydrostaticModel(; grid, buoyancy,
 Ξ(x,z) = randn()
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
-noise_amplitude = 1 * Δ
+noise_amplitude = 0.5 * Δ    # reduced from 1 * Δ
 Tᵢ(x, z) = Δ * (1 - z/Lz) +
            noise_amplitude * sin(2π * x / Lx) * sin(π * z / Lz)
-uᵢ(x, z) = noise_amplitude * Ξ(x, z)
+uᵢ(x, z) = noise_amplitude * randn()
 
 # set the model fields using functions or constants:
 set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
@@ -86,16 +86,15 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 # Setting up sim
 
 function compute_timesteps(Pr::Float64)
-    if Pr == 1.0
-        # For Pr = 1 we choose fixed values (in seconds)
-        Δt = 1.0      # chosen timestep
-        max_Δt = 2.0  # maximum allowable timestep
-    elseif Pr == 7.0
-        # For Pr = 7, use a slightly smaller timestep (based on worst-case diffusive stability, e.g. at high χ)
-        Δt = 0.1     # chosen timestep (seconds)
-        max_Δt = 1 # maximum allowable timestep (seconds)
+    if Pr < 1e-3
+        Δt = 0.05seconds
+        max_Δt = 0.1seconds
+    elseif Pr < 0.1
+        Δt = 0.05seconds
+        max_Δt = 0.25seconds
     else
-        error("Unsupported Pr value: $Pr. Only Pr = 1 and Pr = 7 are supported.")
+        Δt = 0.05seconds
+        max_Δt = 0.2seconds
     end
     @printf("For Pr = %.3e: Δt (chosen) = %.3e s, max_Δt = %.3e s\n", Pr, Δt, max_Δt)
     return Δt, max_Δt
@@ -104,8 +103,8 @@ end
 Δt, max_Δt = compute_timesteps(Pr)
 
 simulation = Simulation(model, Δt=Δt, stop_time=time1)
-wizard = TimeStepWizard(cfl=0.15, max_Δt=max_Δt)
-simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
+wizard = TimeStepWizard(cfl=0.2, max_Δt=max_Δt)
+simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(10))
 
 # Print a progress message
 progress_message(sim) = @printf("Iteration: %04d, time: %s, Δt: %s, max(|u|) = %.1e ms⁻¹, max(|w|) = %.1e ms⁻¹, wall time: %s\n",

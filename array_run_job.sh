@@ -6,7 +6,6 @@
 #SBATCH --qos=short
 #SBATCH -t 2-00:00:00
 #SBATCH --array=1-64%16
-#SBATCH --dependency=afterok:730191
 #SBATCH -o RB_sim_%A_%a.out
 #SBATCH -e RB_sim_%A_%a.err
 #SBATCH --mail-type=ALL
