@@ -14,7 +14,7 @@ using Base.Threads
 const χ = parse(Float64, ARGS[2])
 const R = 1707.76 * χ
 const Pr = parse(Float64, ARGS[1])
-const κ = 1e-5
+const κ = 1e-4
 const ν = Pr * κ
 
 filename = "./OUTPUTS/RB_gpu_simulation_(Pr=$(Pr)_R=$(R))_without_wind"
@@ -76,7 +76,8 @@ model = NonhydrostaticModel(; grid, buoyancy,
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
 noise_amplitude = 1 * Δ
-Tᵢ(x, z) = Δ * (1 - z/Lz) + noise_amplitude * Ξ(x, z)
+Tᵢ(x, z) = Δ * (1 - z/Lz) +
+           noise_amplitude * sin(2π * x / Lx) * sin(π * z / Lz)
 uᵢ(x, z) = noise_amplitude * Ξ(x, z)
 
 # set the model fields using functions or constants:
