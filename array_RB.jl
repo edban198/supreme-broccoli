@@ -75,7 +75,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
 Ξ(x,z) = randn()
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
-noise_amplitude = 0.5 * Δ    # reduced from 1 * Δ
+noise_amplitude = 1e-1 * Δ    # reduced from 1 * Δ
 Tᵢ(x, z) = Δ * (1 - z/Lz) +
            noise_amplitude * sin(2π * x / Lx) * sin(π * z / Lz)
 uᵢ(x, z) = noise_amplitude * randn()
@@ -100,10 +100,10 @@ function compute_timesteps(Pr::Float64)
     return Δt, max_Δt
 end
 
-#Δt, max_Δt = compute_timesteps(Pr)
+Δt, max_Δt = compute_timesteps(Pr)
 
-simulation = Simulation(model, Δt=1, stop_time=time1)
-wizard = TimeStepWizard(cfl=0.1, max_Δt=1)
+simulation = Simulation(model, Δt=Δt, stop_time=time1)
+wizard = TimeStepWizard(cfl=0.1, max_Δt=max_Δt)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(10))
 
 # Print a progress message
