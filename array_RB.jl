@@ -14,7 +14,7 @@ using Base.Threads
 const χ = parse(Float64, ARGS[2])
 const R = 1707.76 * χ
 const Pr = parse(Float64, ARGS[1])
-const κ = 1e-3
+const κ = 5e-3
 const ν = Pr * κ
 
 filename = "./OUTPUTS/RB_gpu_simulation_(Pr=$(Pr)_R=$(R))_without_wind"
@@ -103,7 +103,7 @@ end
 Δt, max_Δt = compute_timesteps(Pr)
 
 simulation = Simulation(model, Δt=Δt, stop_time=time1)
-wizard = TimeStepWizard(cfl=0.2, max_Δt=max_Δt)
+wizard = TimeStepWizard(cfl=0.1, max_Δt=max_Δt)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(10))
 
 # Print a progress message
