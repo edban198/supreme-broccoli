@@ -1,13 +1,13 @@
 #!/bin/bash
-#SBATCH --job-name=RB_sim_wind
+#SBATCH --job-name=RB_sim
 #SBATCH -N 1
 #SBATCH -c 1
 #SBATCH -p cpu
 #SBATCH --qos=short
 #SBATCH -t 2-00:00:00
 #SBATCH --array=1-320%64
-#SBATCH -o RB_sim_wind_%A_%a.out
-#SBATCH -e RB_sim_wind_%A_%a.err
+#SBATCH -o RB_sim_%A_%a.out
+#SBATCH -e RB_sim_%A_%a.err
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user sfbj55@durham.ac.uk
 
@@ -47,4 +47,4 @@ echo "Running simulation with: Pr = $Pr_val, chi = $Chi_val, wind forcing = $Win
 
 # Run the Julia simulation with the extra wind forcing parameter.
 # (Make sure that your Julia script is modified to accept the third argument.)
-~/julia-1.11.2/bin/julia --threads=$SLURM_CPUS_PER_TASK ~/CODE/supreme-broccoli/array_RB_wind.jl $Pr_val $Chi_val $Wind_val
+~/julia-1.11.2/bin/julia --threads=$SLURM_CPUS_PER_TASK ~/CODE/supreme-broccoli/array_RB.jl $Pr_val $Chi_val $Wind_val
