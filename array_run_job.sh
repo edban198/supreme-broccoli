@@ -5,15 +5,15 @@
 #SBATCH -p cpu
 #SBATCH --qos=short
 #SBATCH -t 2-00:00:00
-#SBATCH --array=1-320%16
+#SBATCH --array=1-128%16
 #SBATCH -o RB_sim_%A_%a.out
 #SBATCH -e RB_sim_%A_%a.err
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user sfbj55@durham.ac.uk
 
 # Define the simulation parameter arrays
-Prs=(1.0 1.0771 1.1602 1.2496 1.346 1.4497 1.5615 1.6819 1.8116 1.9513 2.1017 2.2638 2.4384 2.6264 2.8289 3.047 3.2819 3.535 3.8075 4.1011 4.4173 4.7579 5.1248 5.52 5.9456 6.404 6.8978 7.4296 8.0025 8.6195 9.2841 10.0)
-CHIS=(2 5 10 15 20)
+Prs=(1.0 1.1659 1.3594 1.5849 1.8478 2.1544 2.5119 2.9286 3.4145 3.9811 4.6416 5.4117 6.3096 7.3564 8.577 10.0)
+CHIS=(2 5 10 20)
 # Define wind forcing parameters (change these as desired)
 WINDS=(0.0 0.00001603125)
 

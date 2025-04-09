@@ -21,8 +21,8 @@ filename = "./OUTPUTS/RB_gpu_simulation_(Pr=$(Pr)_R=$(R))"
 
 @info"Setting up model"
 
-const Nx = 256     # number of points in each of horizontal directions
-const Nz = 128          # number of points in the vertical direction
+const Nx = 128     # number of points in each of horizontal directions
+const Nz = 64          # number of points in the vertical direction
 
 const Lx = 8     # (m) domain horizontal extents
 const Lz = 4          # (m) domain depth
@@ -93,8 +93,8 @@ function compute_timesteps(Pr::Float64)
         Δt = 0.05seconds
         max_Δt = 0.25seconds
     else
-        Δt = 0.01seconds
-        max_Δt = 0.05seconds
+        Δt = 0.1seconds
+        max_Δt = 0.5seconds
     end
     @printf("For Pr = %.3e: Δt (chosen) = %.3e s, max_Δt = %.3e s\n", Pr, Δt, max_Δt)
     return Δt, max_Δt
