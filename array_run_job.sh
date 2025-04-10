@@ -13,7 +13,7 @@
 
 # Define the simulation parameter arrays
 Prs=(1.0 1.1659 1.3594 1.5849 1.8478 2.1544 2.5119 2.9286 3.4145 3.9811 4.6416 5.4117 6.3096 7.3564 8.577 10.0)
-CHIS=(2 5 10 20)
+CHIS=(25 30 40 50)
 # Define wind forcing parameters (change these as desired)
 WINDS=(0.0 0.00001603125)
 
