@@ -4,6 +4,7 @@
 
 using Printf
 using CairoMakie
+using GLMakie
 using LaTeXStrings
 using Statistics
 using Oceananigans
@@ -15,7 +16,7 @@ const Pr = 6.8
 const κ = 1e-5
 const ν = Pr * κ
 
-filename = "./OUTPUTS/RB_gpu_simulation_(Pr=$(Pr)_R=$(R))_without_wind"
+filename = "./OUTPUTS/RB_animation"
 
 @info"Setting up model"
 
@@ -214,7 +215,8 @@ Label(fig[1, :], title, fontsize = 24, tellwidth=true)
 #record movie
 frames = 1:length(times)
 @info "Making an animation..."
-record(fig, filename * ".mp4", frames, framerate=16) do i
+scene = fig.scene
+record(scene, filename * ".mp4", 1:length(times); framerate = 16) do i
     n[] = i
 end
 
@@ -229,7 +231,7 @@ function save_snapshot_at_time(desired_time, output_filename::String="snapshot.p
 end
 
 # Example usage: save the frame closest to t = 6 hours
-save_snapshot_at_time(2hours, "OUTPUTS/RB_snapshot.png")
+save_snapshot_at_time(12hours, "OUTPUTS/RB_snapshot.png")
 
 if isfile(filename * ".jld2")
     rm(filename * ".jld2"; force=true)
