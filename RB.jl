@@ -4,7 +4,6 @@
 
 using Printf
 using CairoMakie
-using GLMakie
 using LaTeXStrings
 using Statistics
 using Oceananigans
@@ -213,11 +212,11 @@ title = @lift "t = " * prettytime(times[$n]) * ", Nu = " * string(round(Nu, digi
 Label(fig[1, :], title, fontsize = 24, tellwidth=true)
 
 #record movie
-frames = 1:length(times)
 @info "Making an animation..."
-scene = fig.scene
-record(scene, filename * ".mp4", 1:length(times); framerate = 16) do i
+record(fig, filename * ".mp4", 1:length(times); framerate = 16) do i
     n[] = i
+    @info("Animating frame", frame=i, time=times[i])
+    update!(fig)            # force CairoMakie to re-draw with the new `n[]`
 end
 
 function save_snapshot_at_time(desired_time, output_filename::String="snapshot.png")
