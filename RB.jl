@@ -9,9 +9,9 @@ using Statistics
 using Oceananigans
 using Oceananigans.Units: second, seconds, minute, minutes, hour, hours, day, days
 
-const χ = "pp"
-const R = 19564838108.594536    #1100.65 * χ
-const Pr = 0.7299796972650259
+const χ = 5
+const R = 1707.76 * χ
+const Pr = 6.8
 const κ = 1e-5
 const ν = Pr * κ
 
@@ -19,8 +19,8 @@ filename = "./OUTPUTS/RB_gpu_simulation_(Pr=$(Pr)_R=$(R))_without_wind"
 
 @info"Setting up model"
 
-const Nx = 128     # number of points in each of horizontal directions
-const Nz = 64          # number of points in the vertical direction
+const Nx = 1024     # number of points in each of horizontal directions
+const Nz = 512          # number of points in the vertical direction
 
 const Lx = 8     # (m) domain horizontal extents
 const Lz = 4          # (m) domain depth
@@ -43,8 +43,7 @@ const t_ff = sqrt(Lz / (g * α * Δ))
 const t_ff_days = t_ff / (3600 * 24)
 @info "Freefall time in days ~ $t_ff_days"
 @info "Freefall time in seconds ~ $t_ff"
-const time1 = 18hours  # instead of 24 hours
-const time2 = 24hours  # or similar
+const time1 = 1hours  # instead of 24 hours
 
 #Bulk formula
 const ρₒ = 1026.0 # kg m⁻³, average density at the surface of the world ocean
@@ -82,19 +81,8 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-if Pr < 1e-3
-    Δt = 0.5seconds
-    max_Δt = 1seconds
-elseif Pr < 0.1
-    Δt = 1seconds
-    max_Δt = 2seconds
-else
-    Δt = 1seconds
-    max_Δt = 2seconds
-end
-
-simulation = Simulation(model, Δt=Δt, stop_time=time1)
-wizard = TimeStepWizard(cfl=0.3, max_Δt=max_Δt)
+simulation = Simulation(model, Δt=0.005, stop_time=time1)
+wizard = TimeStepWizard(cfl=0.5, max_Δt=0.05)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
 # Print a progress message
@@ -106,16 +94,13 @@ progress_message(sim) = @printf("Iteration: %04d, time: %s, Δt: %s, max(|u|) = 
 
 add_callback!(simulation, progress_message, IterationInterval(100))
 
-@info "running sim..."
-run!(simulation)
-
 # OUTPUTS
 outputs = (
     w = model.velocities.w,
     u = model.velocities.u,
     T = model.tracers.T,
     #avg_T = mean(model.tracers.T, dims=(1,2)),
-    s = sqrt(model.velocities.u^2 + model.velocities.w^2)
+    #s = sqrt(model.velocities.u^2 + model.velocities.w^2)
 )
 
 const data_interval = 5minutes
@@ -127,14 +112,11 @@ simulation.output_writers[:full_outputs] = JLD2OutputWriter(
     overwrite_existing = true
 )
 
-@info"Restarting the simulation..."
-simulation.stop_time = time2
-
 run!(simulation)
 @info"Plotting animation"
 
 T_timeseries = FieldTimeSeries(filename * ".jld2", "T")
-s_timeseries = FieldTimeSeries(filename * ".jld2", "s")
+#s_timeseries = FieldTimeSeries(filename * ".jld2", "s")
 w_timeseries = FieldTimeSeries(filename * ".jld2", "w")
 u_timeseries = FieldTimeSeries(filename * ".jld2", "u")
 #avg_T_timeseries = FieldTimeSeries(filename * ".jld2", "avg_T")
@@ -142,28 +124,28 @@ times = T_timeseries.times
 
 set_theme!(Theme(fontsize = 24))
 
-fig = Figure(size = (1600,2000))
+fig = Figure(size = (800,1200))
 
 axis_kwargs = (xlabel = "x (m)", ylabel = "z (m)",
                aspect = DataAspect()
 )
 
 ax_T = Axis(fig[2,1]; title = L"Temperature, $T$", axis_kwargs...)
-ax_s = Axis(fig[3,1]; title = L"Speed, $s = \sqrt{u^2+v^2}$", axis_kwargs...)
-ax_w = Axis(fig[4,1]; title = L"Vertical Velocity, $w$", axis_kwargs...)
-ax_u = Axis(fig[5,1]; title = L"Horizontal Velocity, $u$", axis_kwargs...)
+#ax_s = Axis(fig[3,1]; title = L"Speed, $s = \sqrt{u^2+v^2}$", axis_kwargs...)
+ax_w = Axis(fig[3,1]; title = L"Vertical Velocity, $w$", axis_kwargs...)
+ax_u = Axis(fig[4,1]; title = L"Horizontal Velocity, $u$", axis_kwargs...)
 #ax_avg_T = Axis(fig[2,3]; title = L"Average Temperature over $x$", xlabel = "T", ylabel = "z(m)")
 
 n = Observable(1)
 
 T = @lift T_timeseries[$n]
-s = @lift s_timeseries[$n]
+#s = @lift s_timeseries[$n]
 w = @lift w_timeseries[$n]
 u = @lift u_timeseries[$n]
 #avg_T = @lift vec(dropdims(avg_T_timeseries[:, :, :, $n], dims=(1,2)))
 
 Tlims = (minimum(abs, interior(T_timeseries)), maximum(abs, interior(T_timeseries)))
-slims = (minimum(abs, interior(s_timeseries)), maximum(abs, interior(s_timeseries)))
+#slims = (minimum(abs, interior(s_timeseries)), maximum(abs, interior(s_timeseries)))
 wlims = (minimum(interior(w_timeseries)), maximum(abs, interior(w_timeseries)))
 ulims = (minimum(interior(u_timeseries)), maximum(abs, interior(u_timeseries)))
 #=
@@ -174,12 +156,12 @@ lines!(ax_avg_Tavg_T, color=:red)
 =#
 hm_T = heatmap!(ax_T, T; colormap = :thermometer, colorrange = Tlims)
 Colorbar(fig[2,2], hm_T)
-hm_s = heatmap!(ax_s, s; colormap = :speed, colorrange = slims)
-Colorbar(fig[3,2], hm_s)
+#hm_s = heatmap!(ax_s, s; colormap = :speed, colorrange = slims)
+#Colorbar(fig[3,2], hm_s)
 hm_w = heatmap!(ax_w, w; colormap = :speed, colorrange = wlims)
-Colorbar(fig[4,2], hm_w)
+Colorbar(fig[3,2], hm_w)
 hm_u = heatmap!(ax_u, u; colormap = :speed, colorrange = ulims)
-Colorbar(fig[5,2], hm_u)
+Colorbar(fig[4,2], hm_u)
 #=
 using Interpolations
 
@@ -225,8 +207,8 @@ Nu = 1 + (Lz / (κ * Δ)) * avg_wT
 @info "R = $R"
 @info "R/R_c = $χ"
 @info "data for csv: $Pr,$R,$Nu,$τx"
-#=
-title = @lift "t = " * prettytime(times[$n]) * ", Nu = " * string(round(Nu, digits=3), ", R/R_c = $γ")
+
+title = @lift "t = " * prettytime(times[$n]) * ", Nu = " * string(round(Nu, digits=3), ", R = $(R)")
 Label(fig[1, :], title, fontsize = 24, tellwidth=true)
 
 #record movie
@@ -235,30 +217,19 @@ frames = 1:length(times)
 record(fig, filename * ".mp4", frames, framerate=16) do i
     n[] = i
 end
-=#
-#=
-# Compute mean wT over x, y, z
-wT_avg_timeseries_2 = mean(wT_timeseries, dims=(1,2,3))  
 
-# Create figure for Nusselt number vs time
-fig_Nu = Figure(size = (1200, 600))
-ax_Nu = Axis(fig_Nu[1, 1];
-    title = "Nusselt Number vs Time",
-    xlabel = "Time (days)", ylabel = "Nusselt Number"
-)
+function save_snapshot_at_time(desired_time, output_filename::String="snapshot.png")
+    # find the index of the time closest to desired_time
+    _, idx = findmin(abs.(times .- desired_time))
+    # update the Observable so the figure redraws that frame
+    n[] = idx
+    # save the current fig to PNG
+    save(output_filename, fig)
+    @info "Saved snapshot at time=$desired_time (index=$idx) to $output_filename"
+end
 
-Nu = @lift 1 .+ Lz .* vec(dropdims(wT_avg_timeseries_2[:, :, :, $n], dims=(3))) ./ (κ * Δ)
-
-Nulims = (minimum(wT_avg_timeseries_2)+1, maximum(wT_avg_timeseries_2)+1)
-ylims!(ax_Nu, Nulims)
-
-# Plot Nusselt number vs time
-times_days = times ./ days
-lines!(ax_Nu, times_days, Nu)
-
-# Save figure
-save("./OUTPUTS/Nusselt_number_vs_time.png", fig_Nu)
-=#
+# Example usage: save the frame closest to t = 6 hours
+save_snapshot_at_time(2hours, "OUTPUTS/RB_snapshot.png")
 
 if isfile(filename * ".jld2")
     rm(filename * ".jld2"; force=true)
