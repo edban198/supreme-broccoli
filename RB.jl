@@ -208,7 +208,7 @@ Nu = 1 + (Lz / (κ * Δ)) * avg_wT
 @info "R/R_c = $χ"
 @info "data for csv: $Pr,$R,$Nu,$τx"
 
-title = @lift "t = " * prettytime(times[$n]) * ", Nu = " * string(round(Nu, digits=3), ", R = $(R)")
+title = @lift "t = " * prettytime(times[$n]) * ", Nu = " * string(round(Nu, digits=3), ", Ra = $(R)")
 Label(fig[1, :], title, fontsize = 24, tellwidth=true)
 
 #record movie
