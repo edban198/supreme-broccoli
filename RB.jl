@@ -43,7 +43,7 @@ const t_ff = sqrt(Lz / (g * α * Δ))
 const t_ff_days = t_ff / (3600 * 24)
 @info "Freefall time in days ~ $t_ff_days"
 @info "Freefall time in seconds ~ $t_ff"
-const time1 = 1hours  # instead of 24 hours
+const time1 = 12hours  # instead of 24 hours
 
 #Bulk formula
 const ρₒ = 1026.0 # kg m⁻³, average density at the surface of the world ocean
