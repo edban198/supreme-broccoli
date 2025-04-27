@@ -72,7 +72,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
 Ξ(x,z) = randn()
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
-noise_amplitude = min(1e-4 * Δ, 1e-6)
+noise_amplitude = 1e-3
 Tᵢ(x, z) = Δ * (1 - z/Lz) + noise_amplitude * Ξ(x, z)
 uᵢ(x, z) = noise_amplitude * Ξ(x, z)
 
