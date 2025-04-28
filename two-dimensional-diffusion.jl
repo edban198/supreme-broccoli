@@ -40,8 +40,8 @@ model = NonhydrostaticModel(; grid,
 )    #by default NonhydrostaticModel has no flux b.c on all fields
 
 #set initial condition on temp field
-const width = 0.1
-const A₀ = 4
+const width = 0.5
+const A₀ = 10
 initial_temperature(x, y) = A₀ * exp(-(x^2+y^2) / (2width^2))
 set!(model,
     T=initial_temperature,
