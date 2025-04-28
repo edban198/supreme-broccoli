@@ -10,7 +10,7 @@
 #SBATCH --qos=short
 #SBATCH -t 18:00:00
 
-#SBATCH --job-name=RB_cpu_simulation_report
+#SBATCH --job-name=RB_cpu_simulation
 
 #SBATCH -o %j.out
 #SBATCH -e %j.err
