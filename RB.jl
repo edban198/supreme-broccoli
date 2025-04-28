@@ -43,8 +43,8 @@ const t_ff = sqrt(Lz / (g * α * Δ))
 const t_ff_days = t_ff / (3600 * 24)
 @info "Freefall time in days ~ $t_ff_days"
 @info "Freefall time in seconds ~ $t_ff"
-const time1 = 12hours  # instead of 24 hours
-const time2 = 10hours
+const time1 = 24hours  # instead of 24 hours
+const time2 = 22hours
 
 #Bulk formula
 const ρₒ = 1026.0 # kg m⁻³, average density at the surface of the world ocean
@@ -73,7 +73,7 @@ model = NonhydrostaticModel(; grid, buoyancy,
 Ξ(x,z) = randn()
 
 # Temperature initial condition: a stable density gradient with random noise superposed.
-noise_amplitude = 1e-3
+noise_amplitude = 1e-5
 Tᵢ(x, z) = Δ * (1 - z/Lz) + noise_amplitude * Ξ(x, z)
 uᵢ(x, z) = noise_amplitude * Ξ(x, z)
 
@@ -84,7 +84,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 simulation = Simulation(model, Δt=0.05, stop_time=time1)
 wizard = TimeStepWizard(cfl=0.5, max_Δt=0.1)
-simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
+simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(10))
 
 # Print a progress message
 progress_message(sim) = @printf("Iteration: %04d, time: %s, Δt: %s, max(|u|) = %.1e ms⁻¹, max(|w|) = %.1e ms⁻¹, wall time: %s\n",
@@ -117,10 +117,8 @@ run!(simulation)
 @info"Plotting animation"
 
 T_timeseries = FieldTimeSeries(filename * ".jld2", "T")
-#s_timeseries = FieldTimeSeries(filename * ".jld2", "s")
 w_timeseries = FieldTimeSeries(filename * ".jld2", "w")
 u_timeseries = FieldTimeSeries(filename * ".jld2", "u")
-#avg_T_timeseries = FieldTimeSeries(filename * ".jld2", "avg_T")
 times = T_timeseries.times
 
 set_theme!(Theme(fontsize = 24))
@@ -132,37 +130,33 @@ axis_kwargs = (xlabel = "x (m)", ylabel = "z (m)",
 )
 
 ax_T = Axis(fig[2,1]; title = L"Temperature, $T$", axis_kwargs...)
-#ax_s = Axis(fig[3,1]; title = L"Speed, $s = \sqrt{u^2+v^2}$", axis_kwargs...)
 ax_w = Axis(fig[3,1]; title = L"Vertical Velocity, $w$", axis_kwargs...)
 ax_u = Axis(fig[4,1]; title = L"Horizontal Velocity, $u$", axis_kwargs...)
-#ax_avg_T = Axis(fig[2,3]; title = L"Average Temperature over $x$", xlabel = "T", ylabel = "z(m)")
+# 1. Convert ALL data to regular arrays upfront
+T_data = Array(interior(T_timeseries))
+u_data = Array(interior(u_timeseries))
+w_data = Array(interior(w_timeseries))
 
+# 2. Calculate limits from converted arrays
+Tlims = extrema(T_data)
+ulims = extrema(u_data)
+wlims = extrema(w_data)
+
+# 3. Modify observables with explicit type conversion
 n = Observable(1)
+T = @lift Array{Float32}(T_data[:, 1, :, $n])  # Force Float32 type
+u = @lift Array{Float32}(u_data[:, 1, :, $n])
+w = @lift Array{Float32}(w_data[:, 1, :, $n])
 
-T = @lift T_timeseries[$n]
-#s = @lift s_timeseries[$n]
-w = @lift w_timeseries[$n]
-u = @lift u_timeseries[$n]
-#avg_T = @lift vec(dropdims(avg_T_timeseries[:, :, :, $n], dims=(1,2)))
+# 4. Fix colorbar assignments
+hm_T = heatmap!(ax_T, x_T, z_T, T; colormap=:thermometer, colorrange=Tlims)
+hm_u = heatmap!(ax_u, x_u, z_u, u; colormap=:speed, colorrange=ulims)
+hm_w = heatmap!(ax_w, x_w, z_w, w; colormap=:speed, colorrange=wlims)
 
-Tlims = (minimum(abs, interior(T_timeseries)), maximum(abs, interior(T_timeseries)))
-#slims = (minimum(abs, interior(s_timeseries)), maximum(abs, interior(s_timeseries)))
-wlims = (minimum(interior(w_timeseries)), maximum(abs, interior(w_timeseries)))
-ulims = (minimum(interior(u_timeseries)), maximum(abs, interior(u_timeseries)))
-#=
-xlims!(ax_avg_T, Tlims)
-ylims!(ax_avg_T, 0, Lz)
-z_vec = LinRange(0, Lz, Nz)
-lines!(ax_avg_Tavg_T, color=:red)
-=#
-hm_T = heatmap!(ax_T, T; colormap = :thermometer, colorrange = Tlims)
 Colorbar(fig[2,2], hm_T)
-#hm_s = heatmap!(ax_s, s; colormap = :speed, colorrange = slims)
-#Colorbar(fig[3,2], hm_s)
-hm_w = heatmap!(ax_w, w; colormap = :speed, colorrange = wlims)
-Colorbar(fig[3,2], hm_w)
-hm_u = heatmap!(ax_u, u; colormap = :speed, colorrange = ulims)
-Colorbar(fig[4,2], hm_u)
+Colorbar(fig[3,2], hm_u)  # Fixed to u-velocity
+Colorbar(fig[4,2], hm_w)  # Fixed to w-velocity
+
 #=
 using Interpolations
 
@@ -207,8 +201,6 @@ avg_wT_after = mean(late_wT)
 # now compute the “late‐time” Nusselt number
 Nu = 1 + (Lz / (κ * Δ)) * avg_wT_after
 
-@info "Averaged Nu for t ≥ $(time2) = $(round(Nu_after, digits=4))"
-
 @info "τx = $τx"
 @info "Pr = $Pr"
 @info "Nu = $Nu"
@@ -219,7 +211,7 @@ Nu = 1 + (Lz / (κ * Δ)) * avg_wT_after
 title = @lift "t = " * prettytime(times[$n])
 Label(fig[1, :], title, fontsize = 24, tellwidth=true)
 
-#record movie
+# Record animation
 frames = 1:length(times)
 @info "Making an animation..."
 record(fig, filename * ".mp4", frames, framerate=16) do i
