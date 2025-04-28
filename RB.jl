@@ -19,8 +19,8 @@ filename = "./OUTPUTS/RB_animation"
 
 @info"Setting up model"
 
-const Nx = 1024     # number of points in each of horizontal directions
-const Nz = 512          # number of points in the vertical direction
+const Nx = 512     # number of points in each of horizontal directions
+const Nz = 128          # number of points in the vertical direction
 
 const Lx = 8     # (m) domain horizontal extents
 const Lz = 4          # (m) domain depth
@@ -44,6 +44,7 @@ const t_ff_days = t_ff / (3600 * 24)
 @info "Freefall time in days ~ $t_ff_days"
 @info "Freefall time in seconds ~ $t_ff"
 const time1 = 12hours  # instead of 24 hours
+const time2 = 10hours
 
 #Bulk formula
 const ρₒ = 1026.0 # kg m⁻³, average density at the surface of the world ocean
@@ -81,7 +82,7 @@ set!(model, u=uᵢ, w=uᵢ, T=Tᵢ)
 
 # Setting up sim
 
-simulation = Simulation(model, Δt=0.005, stop_time=time1)
+simulation = Simulation(model, Δt=0.01, stop_time=time1)
 wizard = TimeStepWizard(cfl=0.5, max_Δt=0.05)
 simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(50))
 
@@ -197,9 +198,16 @@ w_center_timeseries = 0.5 .* (
 
 wT_timeseries = w_center_timeseries .* T_timeseries
 
-avg_wT = mean(wT_timeseries)
+inds_after = findall(t -> t ≥ time2, times)
 
-Nu = 1 + (Lz / (κ * Δ)) * avg_wT
+late_wT = wT_timeseries[:, :, :, inds_after]
+
+avg_wT_after = mean(late_wT)
+
+# now compute the “late‐time” Nusselt number
+Nu = 1 + (Lz / (κ * Δ)) * avg_wT_after
+
+@info "Averaged Nu for t ≥ $(time2) = $(round(Nu_after, digits=4))"
 
 @info "τx = $τx"
 @info "Pr = $Pr"
