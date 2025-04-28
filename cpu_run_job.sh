@@ -12,8 +12,8 @@
 
 #SBATCH --job-name=RB_cpu_simulation
 
-#SBATCH -o %j.out
-#SBATCH -e %j.err
+#SBATCH -o RB_cpu_sim.out
+#SBATCH -e RB_cpu_sim.err
 
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user sfbj55@durham.ac.uk
