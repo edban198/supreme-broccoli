@@ -12,7 +12,7 @@ using Oceananigans.Units: second, seconds, minute, minutes, hour, hours, day, da
 const χ = 5
 const R = 1707.76 * χ
 const Pr = 6.8
-const κ = 1e-5
+const κ = 1e-4
 const ν = Pr * κ
 
 filename = "./OUTPUTS/RB_animation"
@@ -54,7 +54,7 @@ const τx = 0#(κ/Lz)^2 * ρₒ # m² s⁻²
 
 T_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(Δ))
 
-u_bcs = FieldBoundaryConditions(top = FluxBoundaryCondition(τx), bottom = ValueBoundaryCondition(0))
+u_bcs = FieldBoundaryConditions(top = ValueBoundaryCondition(0), bottom = ValueBoundaryCondition(0))
 
 closure = ScalarDiffusivity(ν=ν,κ=κ)
 
@@ -229,7 +229,7 @@ function save_snapshot_at_time(desired_time, output_filename::String="snapshot.p
 end
 
 # Example usage: save the frame closest to t = 6 hours
-save_snapshot_at_time(12hours, "OUTPUTS/RB_snapshot.png")
+save_snapshot_at_time(time1, "OUTPUTS/RB_snapshot.png")
 
 if isfile(filename * ".jld2")
     rm(filename * ".jld2"; force=true)
