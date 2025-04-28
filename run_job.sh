@@ -10,9 +10,9 @@
 #SBATCH --gres=gpu:pascal:1
 #SBATCH -p ug-gpu-small
 #SBATCH --qos=short
-#SBATCH -t 01-00:00:00
+#SBATCH -t 01:00:00
 
-#SBATCH --job-name=RB_gpu_simulation
+#SBATCH --job-name=gpu_diffusion_sim
 
 #SBATCH -o RB_gpu_sim.out
 #SBATCH -e RB_gpu_sim.err
@@ -23,4 +23,4 @@
 # Run the program
 cd
 
-./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/RB.jl
+./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/two-dimensional-diffusion.jl

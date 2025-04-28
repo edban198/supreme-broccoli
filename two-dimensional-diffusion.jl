@@ -11,62 +11,66 @@ using Printf
 
 #build grid
 
-filename = "2d_diffusion"
+filename = "OUTPUTS/2d_diffusion"
 
-const Lx = 10
-const Ly = 10
-const Nx = 64
-const Ny = 64
+const Lx = 1
+const Ly = 1
+const Nx = 512
+const Ny = 512
 
-grid = RectilinearGrid(CPU(); size = (Nx,Ny),
+grid = RectilinearGrid(GPU(); size = (Nx,Ny),
                        x = (-Lx/2, Lx/2), y = (-Ly/2, Ly/2),
                        topology = (Periodic, Periodic, Flat)
 )   #assign Flat to x and y for 1d problem
 
-const ν=0.1
-const κ=0.1
+const ν=0
+const κ=1e-6
 
 closure = ScalarDiffusivity(ν=ν, κ=κ)  #use ScalarDiffusivity for either molecular or turbulent diffusion
 
-const A = 2π 
+const A = 1
 
-U(x, y, t) = A * cos(2π * y)
+U(x, y) = A * cos(2π * y)
 
-V(x, y, t) = -A * cos(2π * x)
+V(x, y) = -A * cos(2π * x)
 
 model = NonhydrostaticModel(; grid,
                             closure,
-                            tracers=:T,
-                            background_fields = (u=U, v=V,)
+                            tracers=:T
 )    #by default NonhydrostaticModel has no flux b.c on all fields
 
 #set initial condition on temp field
-const width = 0.5
-const A₀ = 5
+const width = 0.1
+const A₀ = 4
 initial_temperature(x, y) = A₀ * exp(-(x^2+y^2) / (2width^2))
-set!(model, T=initial_temperature)
+set!(model,
+    T=initial_temperature,
+    u=U, v=V
+)
 
 #Visualising model data
 using CairoMakie
 set_theme!(Theme(fontsize = 24, linewidth = 3))
 
 simulation = Simulation(model,
-                        Δt = 30seconds,
-                        stop_time = 1day
+                        Δt = 0.01seconds,
+                        stop_time = 8seconds
 )
+
+wizard = TimeStepWizard(cfl=1.1, max_change=1.1, max_Δt=0.05seconds)
+simulation.callbacks[:wizard] = Callback(wizard, IterationInterval(10))
 
 progress_message(sim) = @printf("Iteration: %04d, time: %s, Δt: %s, max(|u|) = %.1e ms⁻¹, max(|v|) = %.1e ms⁻¹, wall time: %s\n",
                                 iteration(sim), prettytime(sim), prettytime(sim.Δt),
                                 maximum(abs, sim.model.velocities.u), maximum(abs, sim.model.velocities.v),
                                 prettytime(sim.run_wall_time)
 )
-
-add_callback!(simulation, progress_message, IterationInterval(100))
+add_callback!(simulation, progress_message, IterationInterval(20))
 
 #log data to .jld2 file as simulation progresses
 simulation.output_writers[:temperature] = JLD2OutputWriter(model, model.tracers,
                                                            filename = filename * ".jld2",
-                                                           schedule = IterationInterval(10minutes),
+                                                           schedule = TimeInterval(0.05seconds),
                                                            overwrite_existing = true
 )
 
@@ -77,35 +81,60 @@ run!(simulation)
 T_timeseries = FieldTimeSeries(filename * ".jld2", "T")
 times = T_timeseries.times
 
-xT, yT = nodes(T_timeseries)
+set_theme!(Theme(fontsize = 24, linewidth = 3))
 
-set_theme!(Theme(fontsize = 24))
-
-fig = Figure(size = (1000,800))
-
-axis_kwargs = (xlabel = "x", ylabel = "y",
-               limits = ((-Lx/2, Lx/2), (-Ly/2, Ly/2)),
-               aspect = AxisAspect(1)
+fig = Figure(size = (1000, 800),
+    fontsize = 24
 )
 
-
-ax_T = Axis(fig[1,1]; title = L"Two-dimensional diffusion in a background field of $\Phi = \frac{1}{2\pi} (\sin(2\pi x / L) + \sin(2\pi y / L))$", axis_kwargs...)
+ax = Axis(fig[1, 1],
+    xlabel = L"x \; (m)",
+    ylabel = L"y \; (m)",
+    aspect = DataAspect(),
+    limits = ((-Lx/2, Lx/2), (-Ly/2, Ly/2)),
+    xgridvisible = false,
+    ygridvisible = false,
+    xlabelsize = 24,
+    ylabelsize = 24,
+    xticklabelsize = 24,
+    yticklabelsize = 24,
+    xticksize = 16,
+    yticksize = 16,
+    xticks = -0.5:0.5:0.5,
+    yticks = -0.5:0.5:0.5
+)
 
 n = Observable(1)
 
+Tlims = (minimum(interior(abs(T_timeseries))), maximum(interior(T_timeseries)))
+
 T = @lift T_timeseries[$n]
 
-Tlims = (minimum(abs, interior(T_timeseries)), maximum(abs, interior(T_timeseries)))
+xT, yT = nodes(T_timeseries)
 
-hm_T = heatmap!(ax_T, T; colormap = :thermometer, colorrange = Tlims)
-Colorbar(fig[1,2], hm_T)
+hm = heatmap!(ax, xT, yT, T;
+    colormap = :thermometer,
+    colorrange = Tlims
+)
 
-title = @lift "t = " * prettytime(times[$n])
-Label(fig[1, 1:2], title, fontsize = 24, tellwidth=true)
+tickvals  = range(Tlims[1], Tlims[2], length = 6)
+ticklabels = string.(round.(tickvals, digits = 2))
 
-#record movie
+Colorbar(fig[1, 2], hm,
+    label = L"T",
+    width = 12,
+    labelsize = 24,
+    ticks = (tickvals, ticklabels)
+)
+
+title = @lift "t = " * string(round(times[$n], digits=2))
+
+Label(fig[0, :], title, fontsize=24, tellwidth=false)
+
 frames = 1:length(times)
-@info "Making an animation..."
-record(fig, filename * ".mp4", frames, framerate=4) do i
+
+@info "Making a neat animation of vorticity and speed..."
+
+record(fig, filename * ".mp4", frames, framerate=8) do i
     n[] = i
 end
