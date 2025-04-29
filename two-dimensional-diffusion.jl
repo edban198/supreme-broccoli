@@ -18,7 +18,7 @@ const Ly = 1
 const Nx = 512
 const Ny = 512
 
-grid = RectilinearGrid(CPU(); size=(Nx, Ny),
+grid = RectilinearGrid(GPU(); size=(Nx, Ny),
                        x=(-Lx/2, Lx/2), y=(-Ly/2, Ly/2),
                        topology=(Periodic, Periodic, Flat)
 )
