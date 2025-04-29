@@ -20,7 +20,7 @@ filename = "./OUTPUTS/RB_animation"
 @info"Setting up model"
 
 const Nx = 512     # number of points in each of horizontal directions
-const Nz = 128          # number of points in the vertical direction
+const Nz = 256          # number of points in the vertical direction
 
 const Lx = 8     # (m) domain horizontal extents
 const Lz = 4          # (m) domain depth
@@ -121,17 +121,31 @@ w_timeseries = FieldTimeSeries(filename * ".jld2", "w")
 u_timeseries = FieldTimeSeries(filename * ".jld2", "u")
 times = T_timeseries.times
 
+x_T = Array(xnodes(grid, Center()))
+z_T = Array(znodes(grid, Center()))
+
+x_u = Array(xnodes(grid, Face()))
+z_u = Array(znodes(grid, Center()))
+
+x_w = Array(xnodes(grid, Center()))
+z_w = Array(znodes(grid, Face()))
+
 set_theme!(Theme(fontsize = 24))
 
 fig = Figure(size = (800,1200))
 
-axis_kwargs = (xlabel = "x (m)", ylabel = "z (m)",
-               aspect = DataAspect()
+fs = 32
+ts = 20
+axis_kwargs = (xlabel = L"x (m)", ylabel = L"z (m)",
+               aspect = DataAspect(),
+               xlabelsize = fs, ylabelsize = fs,
+               xticksize = 18, yticksize = 18,
+               xticklabelsize = fs, yticklabelsize = fs
 )
 
-ax_T = Axis(fig[2,1]; title = L"Temperature, $T$", axis_kwargs...)
-ax_w = Axis(fig[3,1]; title = L"Vertical Velocity, $w$", axis_kwargs...)
-ax_u = Axis(fig[4,1]; title = L"Horizontal Velocity, $u$", axis_kwargs...)
+ax_T = Axis(fig[2,1]; axis_kwargs...)
+ax_w = Axis(fig[3,1]; axis_kwargs...)
+ax_u = Axis(fig[4,1]; axis_kwargs...)
 # 1. Convert ALL data to regular arrays upfront
 T_data = Array(interior(T_timeseries))
 u_data = Array(interior(u_timeseries))
@@ -153,9 +167,24 @@ hm_T = heatmap!(ax_T, x_T, z_T, T; colormap=:thermometer, colorrange=Tlims)
 hm_u = heatmap!(ax_u, x_u, z_u, u; colormap=:speed, colorrange=ulims)
 hm_w = heatmap!(ax_w, x_w, z_w, w; colormap=:speed, colorrange=wlims)
 
-Colorbar(fig[2,2], hm_T)
-Colorbar(fig[3,2], hm_u)  # Fixed to u-velocity
-Colorbar(fig[4,2], hm_w)  # Fixed to w-velocity
+Colorbar(fig[2,2], hm_T;
+    label = L"T (°C)",
+    labelsize = fs,
+    ticklabelsize = 24,
+    ticksize = ts
+)
+Colorbar(fig[3,2], hm_u;
+    label = L"u (m/s)",
+    labelsize = fs,
+    ticklabelsize = 24,
+    ticksize = ts
+)
+Colorbar(fig[4,2], hm_w;
+    label = L"w (m/s)",
+    labelsize = fs,
+    ticklabelsize = 24,
+    ticksize = ts
+)
 
 #=
 using Interpolations
@@ -228,7 +257,6 @@ function save_snapshot_at_time(desired_time, output_filename::String="snapshot.p
     @info "Saved snapshot at time=$desired_time (index=$idx) to $output_filename"
 end
 
-# Example usage: save the frame closest to t = 6 hours
 save_snapshot_at_time(time1, "OUTPUTS/RB_snapshot.png")
 
 if isfile(filename * ".jld2")
