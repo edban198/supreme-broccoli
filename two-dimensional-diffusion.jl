@@ -44,7 +44,7 @@ initial_temperature(x, y) = A₀ * exp(-(x^2+y^2) / (2width^2))
 U(x, y) = A * cos(2π * y)  # u-velocity at x-face centers
 V(x, y) = -A * cos(2π * x) # v-velocity at y-face centers
 
-set!(model, u=uᵢ, v=vᵢ, T=initial_temperature)
+set!(model, u=U, v=V, T=initial_temperature)
 
 #Visualising model data
 using CairoMakie
