@@ -136,7 +136,7 @@ fig = Figure(size = (800,1200))
 
 fs = 32
 ts = 20
-axis_kwargs = (xlabel = L"x (m)", ylabel = L"z (m)",
+axis_kwargs = (xlabel = L"x\ (m)", ylabel = L"z\ (m)",
                aspect = DataAspect(),
                xlabelsize = fs, ylabelsize = fs,
                xticksize = 18, yticksize = 18,
@@ -168,19 +168,19 @@ hm_u = heatmap!(ax_u, x_u, z_u, u; colormap=:speed, colorrange=ulims)
 hm_w = heatmap!(ax_w, x_w, z_w, w; colormap=:speed, colorrange=wlims)
 
 Colorbar(fig[2,2], hm_T;
-    label = L"T (°C)",
+    label = L"T\ (°C)",
     labelsize = fs,
     ticklabelsize = 24,
     ticksize = ts
 )
 Colorbar(fig[3,2], hm_u;
-    label = L"u (m/s)",
+    label = L"u\ (m/s)",
     labelsize = fs,
     ticklabelsize = 24,
     ticksize = ts
 )
 Colorbar(fig[4,2], hm_w;
-    label = L"w (m/s)",
+    label = L"w\ (m/s)",
     labelsize = fs,
     ticklabelsize = 24,
     ticksize = ts
