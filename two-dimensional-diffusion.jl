@@ -34,7 +34,6 @@ const A = 1
 
 model = NonhydrostaticModel(; grid,
                             closure,
-                            advection = UpwindBiasedFifthOrder(),
                             tracers=:T
 )    #by default NonhydrostaticModel has no flux b.c on all fields
 
@@ -45,13 +44,6 @@ initial_temperature(x, y) = A₀ * exp(-(x^2+y^2) / (2width^2))
 # Use correct grid locations for velocities
 U(x, y) = A * cos(2π * y)  # u-velocity at x-face centers
 V(x, y) = -A * cos(2π * x) # v-velocity at y-face centers
-
-# Initialize velocities with correct field types
-uᵢ = XFaceField(grid)
-vᵢ = YFaceField(grid)
-
-set!(uᵢ, U)
-set!(vᵢ, V)
 
 set!(model, u=uᵢ, v=vᵢ, T=initial_temperature)
 
