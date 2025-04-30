@@ -7,6 +7,7 @@ using CairoMakie
 using LaTeXStrings
 using Oceananigans
 using Oceananigans.Units: meter, meters, day, days, hours, hour, minutes, minute, seconds
+using Oceananigans: UpwindBiasedFifthOrder
 using Printf
 
 #build grid
