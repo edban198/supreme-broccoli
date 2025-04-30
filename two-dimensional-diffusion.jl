@@ -39,7 +39,7 @@ model = NonhydrostaticModel(; grid,
 
 #set initial condition on temp field
 const width = 0.1
-const A₀ = 1
+const A₀ = 4
 initial_temperature(x, y) = A₀ * exp(-(x^2+y^2) / (2width^2))
 # Use correct grid locations for velocities
 U(x, y) = A * cos(2π * y)  # u-velocity at x-face centers
