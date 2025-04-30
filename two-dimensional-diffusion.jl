@@ -7,7 +7,6 @@ using CairoMakie
 using LaTeXStrings
 using Oceananigans
 using Oceananigans.Units: meter, meters, day, days, hours, hour, minutes, minute, seconds
-using Oceananigans: UpwindBiasedFifthOrder
 using Printf
 
 #build grid
@@ -110,7 +109,7 @@ ax = Axis(fig[1, 1],
 n = Observable(1)
 T = @lift T_data[:, :, 1, $n]
 
-Tlims = (minimum(interior(T_timeseries)), maximum(interior(T_timeseries)))
+Tlims = (0, maximum(interior(T_timeseries)))
 
 xT, yT = nodes(T_timeseries)
 
