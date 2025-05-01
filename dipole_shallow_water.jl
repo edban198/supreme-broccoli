@@ -1,7 +1,7 @@
 # dipole_shallow_water_oceananigans_style.jl
 
-using Oceananigans                             # loads all core Oceananigans types :contentReference[oaicite:3]{index=3}
-using Oceananigans.OutputWriters              # brings in JLD2Writer, TimeInterval, etc.
+using Oceananigans                                              # core functionality
+using Oceananigans.OutputWriters: JLD2Writer, TimeInterval       # ensure symbols are in scope
 using Oceananigans.Models: ShallowWaterModel
 using CairoMakie
 using Printf
