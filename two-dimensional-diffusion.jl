@@ -31,8 +31,12 @@ closure = ScalarDiffusivity(ν=ν, κ=κ)  #use ScalarDiffusivity for either mol
 
 const A = 1
 
+U(x, y) = A * cos(2π * y)  # u-velocity at x-face centers
+V(x, y) = -A * cos(2π * x) # v-velocity at y-face centers
+
 model = NonhydrostaticModel(; grid,
                             closure,
+                            forcing=(u=U,v=V,),
                             tracers=:T
 )    #by default NonhydrostaticModel has no flux b.c on all fields
 
@@ -40,11 +44,12 @@ model = NonhydrostaticModel(; grid,
 const width = 0.1
 const A₀ = 4
 initial_temperature(x, y) = A₀ * exp(-(x^2+y^2) / (2width^2))
-# Use correct grid locations for velocities
-U(x, y) = A * cos(2π * y)  # u-velocity at x-face centers
-V(x, y) = -A * cos(2π * x) # v-velocity at y-face centers
 
-set!(model, u=U, v=V, T=initial_temperature)
+Ξ(x, y) = randn()
+uᵢ(x, y) = A * cos(2π * y) + 0.1 * Ξ(x, y) # u-velocity at x-face centers
+vᵢ(x, y) = -A * cos(2π * x) + 0.1 * Ξ(x, y) # v-velocity at y-face centers
+
+set!(model, u=uᵢ, v=vᵢ, T=initial_temperature)
 
 #Visualising model data
 using CairoMakie
