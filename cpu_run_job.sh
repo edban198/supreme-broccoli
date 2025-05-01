@@ -21,4 +21,4 @@
 # Run the program
 cd
 
-./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/RB.jl
+./julia-1.11.2/bin/julia ./CODE/supreme-broccoli/dipole_shallow_water.jl
